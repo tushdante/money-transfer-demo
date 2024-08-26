@@ -21,16 +21,13 @@ package io.temporal.samples.moneytransfer;
 
 import io.temporal.activity.ActivityInterface;
 import io.temporal.samples.moneytransfer.dataclasses.ChargeResponseObj;
-import io.temporal.samples.moneytransfer.dataclasses.ExecutionScenarioObj;
 
 @ActivityInterface
 public interface AccountTransferActivities {
-  Boolean validate(ExecutionScenarioObj scenario);
 
-  String withdraw(float amountDollars, ExecutionScenarioObj scenario);
+  String withdraw(float amountDollars, boolean simulateDelay);
 
-  ChargeResponseObj deposit(
-      String idempotencyKey, float amountDollars, ExecutionScenarioObj scenario);
+  ChargeResponseObj deposit(String idempotencyKey, float amountDollars, boolean invalidAccount);
 
   boolean undoWithdraw(float amountDollars);
 }

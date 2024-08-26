@@ -28,10 +28,9 @@ import io.temporal.api.workflowservice.v1.WorkflowServiceGrpc;
 import io.temporal.client.WorkflowClient;
 import io.temporal.client.WorkflowOptions;
 import io.temporal.client.WorkflowStub;
-import io.temporal.samples.moneytransfer.dataclasses.ExecutionScenarioObj;
-import io.temporal.samples.moneytransfer.dataclasses.ResultObj;
 import io.temporal.samples.moneytransfer.dataclasses.StateObj;
 import io.temporal.samples.moneytransfer.dataclasses.TransferInput;
+import io.temporal.samples.moneytransfer.dataclasses.TransferOutput;
 import io.temporal.samples.moneytransfer.helper.ServerInfo;
 import io.temporal.serviceclient.WorkflowServiceStubs;
 import java.io.FileNotFoundException;
@@ -39,7 +38,7 @@ import javax.net.ssl.SSLException;
 
 public class TransferRequester {
 
-  public static ResultObj getWorkflowOutcome(String workflowId)
+  public static TransferOutput getWorkflowOutcome(String workflowId)
       throws FileNotFoundException, SSLException {
 
     WorkflowClient client = TemporalClient.get();
@@ -47,7 +46,7 @@ public class TransferRequester {
     WorkflowStub workflowStub = client.newUntypedWorkflowStub(workflowId);
 
     // Returns the result after waiting for the Workflow to complete.
-    ResultObj result = workflowStub.getResult(ResultObj.class);
+    TransferOutput result = workflowStub.getResult(TransferOutput.class);
     return result;
   }
 
@@ -111,7 +110,7 @@ public class TransferRequester {
 
     int amountCents = 45; // amount to transfer
 
-    TransferInput params = new TransferInput(amountCents, ExecutionScenarioObj.HAPPY_PATH);
+    TransferInput params = new TransferInput(amountCents, "account1", "account2");
 
     runWorkflow(params);
 

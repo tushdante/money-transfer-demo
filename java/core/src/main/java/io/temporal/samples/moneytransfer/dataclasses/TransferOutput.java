@@ -22,15 +22,15 @@ package io.temporal.samples.moneytransfer.dataclasses;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-public class ResultObj {
+public class TransferOutput {
   private ChargeResponseObj chargeResponseObj;
 
   // no-arg constructor
-  public ResultObj() {}
+  public TransferOutput() {}
 
   // Constructor with JsonProperty annotation
   @JsonCreator
-  public ResultObj(@JsonProperty("chargeResponseObj") ChargeResponseObj chargeResponseObj) {
+  public TransferOutput(@JsonProperty("chargeResponseObj") ChargeResponseObj chargeResponseObj) {
     this.chargeResponseObj = chargeResponseObj;
   }
 

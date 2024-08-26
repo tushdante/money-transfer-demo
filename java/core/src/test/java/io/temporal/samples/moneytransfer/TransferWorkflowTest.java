@@ -3,13 +3,11 @@ package io.temporal.samples.moneytransfer;
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.*;
 
-import io.temporal.client.WorkflowClient;
 import io.temporal.client.WorkflowOptions;
 import io.temporal.client.WorkflowStub;
 import io.temporal.samples.moneytransfer.dataclasses.ChargeResponseObj;
-import io.temporal.samples.moneytransfer.dataclasses.ExecutionScenarioObj;
-import io.temporal.samples.moneytransfer.dataclasses.ResultObj;
 import io.temporal.samples.moneytransfer.dataclasses.TransferInput;
+import io.temporal.samples.moneytransfer.dataclasses.TransferOutput;
 import io.temporal.testing.TestWorkflowRule;
 import java.time.Duration;
 import org.junit.After;
@@ -22,6 +20,7 @@ public class TransferWorkflowTest {
   public TestWorkflowRule testWorkflowRule =
       TestWorkflowRule.newBuilder()
           .setWorkflowTypes(AccountTransferWorkflowImpl.class)
+          .setWorkflowTypes(AccountTransferWorkflowScenarios.class)
           .setDoNotStart(true)
           .build();
 
@@ -41,13 +40,16 @@ public class TransferWorkflowTest {
                 AccountTransferWorkflow.class,
                 WorkflowOptions.newBuilder().setTaskQueue(testWorkflowRule.getTaskQueue()).build());
     // Execute a workflow waiting for it to complete.
-    TransferInput workflowParameterObj = new TransferInput();
-    workflowParameterObj.setAmount(100);
-    workflowParameterObj.setScenario(ExecutionScenarioObj.HAPPY_PATH);
+    TransferInput transferInput = new TransferInput();
+    transferInput.setAmount(100);
+    transferInput.setFromAccount("account1");
+    transferInput.setToAccount("account2");
 
-    ResultObj result = workflow.transfer(workflowParameterObj);
+    // HAPPY_PATH
+
+    TransferOutput result = workflow.transfer(transferInput);
     assertEquals(
-        new ResultObj(new ChargeResponseObj("example-charge-id"))
+        new TransferOutput(new ChargeResponseObj("example-charge-id"))
             .getChargeResponseObj()
             .getChargeId(),
         result.getChargeResponseObj().getChargeId());
@@ -63,35 +65,36 @@ public class TransferWorkflowTest {
 
     String WORKFLOW_ID = "HumanInLoopWorkflow";
 
-    // Get a workflow stub using the same task queue the worker uses.
-    AccountTransferWorkflow workflow =
+    WorkflowStub workflowStub =
         testWorkflowRule
             .getWorkflowClient()
-            .newWorkflowStub(
-                AccountTransferWorkflow.class,
+            .newUntypedWorkflowStub(
+                "AccountTransferWorkflowHumanInLoop",
                 WorkflowOptions.newBuilder()
                     .setWorkflowId(WORKFLOW_ID)
                     .setTaskQueue(testWorkflowRule.getTaskQueue())
                     .build());
     // Execute a workflow waiting for it to complete.
-    TransferInput workflowParameterObj = new TransferInput();
-    workflowParameterObj.setAmount(100);
-    workflowParameterObj.setScenario(ExecutionScenarioObj.HUMAN_IN_LOOP);
+    TransferInput transferInput = new TransferInput();
+    transferInput.setAmount(100);
+    transferInput.setFromAccount("account1");
+    transferInput.setToAccount("account2");
 
-    WorkflowClient.start(workflow::transfer, workflowParameterObj);
+    workflowStub.start(transferInput);
 
     // Skip time so we're waiting for a signal
     testWorkflowRule.getTestEnvironment().sleep(Duration.ofSeconds(15));
     // signal the workflow
-    workflow.approveTransfer();
 
-    ResultObj resultObj = WorkflowStub.fromTyped(workflow).getResult(ResultObj.class);
+    workflowStub.signal("approveTransfer");
+
+    TransferOutput transferOutput = workflowStub.getResult(TransferOutput.class);
 
     assertEquals(
-        new ResultObj(new ChargeResponseObj("example-charge-id"))
+        new TransferOutput(new ChargeResponseObj("example-charge-id"))
             .getChargeResponseObj()
             .getChargeId(),
-        resultObj.getChargeResponseObj().getChargeId());
+        transferOutput.getChargeResponseObj().getChargeId());
   }
 
   /** Test workflow with mocked activities */
@@ -102,10 +105,8 @@ public class TransferWorkflowTest {
 
     ChargeResponseObj chargeResponseObj = new ChargeResponseObj("example-charge-id");
 
-    when(activities.validate(ExecutionScenarioObj.HAPPY_PATH)).thenReturn(true);
-    when(activities.withdraw(100.0f, ExecutionScenarioObj.HAPPY_PATH)).thenReturn("SUCCESS");
-    when(activities.deposit(anyString(), eq(100.0f), eq(ExecutionScenarioObj.HAPPY_PATH)))
-        .thenReturn(chargeResponseObj);
+    when(activities.withdraw(100.0f, false)).thenReturn("SUCCESS");
+    when(activities.deposit(anyString(), eq(100.0f), eq(false))).thenReturn(chargeResponseObj);
     testWorkflowRule.getWorker().registerActivitiesImplementations(activities);
     testWorkflowRule.getTestEnvironment().start();
 
@@ -117,13 +118,16 @@ public class TransferWorkflowTest {
                 AccountTransferWorkflow.class,
                 WorkflowOptions.newBuilder().setTaskQueue(testWorkflowRule.getTaskQueue()).build());
     // Execute a workflow waiting for it to complete.
-    TransferInput workflowParameterObj = new TransferInput();
-    workflowParameterObj.setAmount(100);
-    workflowParameterObj.setScenario(ExecutionScenarioObj.HAPPY_PATH);
+    TransferInput transferInput = new TransferInput();
+    transferInput.setAmount(100);
+    transferInput.setFromAccount("account1");
+    transferInput.setToAccount("account2");
 
-    ResultObj result = workflow.transfer(workflowParameterObj);
+    // Happy Path
+
+    TransferOutput result = workflow.transfer(transferInput);
     assertEquals(
-        new ResultObj(new ChargeResponseObj("example-charge-id"))
+        new TransferOutput(new ChargeResponseObj("example-charge-id"))
             .getChargeResponseObj()
             .getChargeId(),
         result.getChargeResponseObj().getChargeId());

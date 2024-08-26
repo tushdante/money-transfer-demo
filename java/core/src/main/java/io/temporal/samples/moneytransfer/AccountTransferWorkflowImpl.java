@@ -66,71 +66,24 @@ public class AccountTransferWorkflowImpl implements AccountTransferWorkflow {
 
   // workflow
   @Override
-  public ResultObj transfer(TransferInput params) {
+  public TransferOutput transfer(TransferInput params) {
 
     transferState = "starting";
     progressPercentage = 25;
 
     Workflow.sleep(Duration.ofSeconds(ServerInfo.getWorkflowSleepDuration()));
 
-    progressPercentage = 50;
-    transferState = "running";
-
-    // The validate activity will return false if approval is required
-    if (!accountTransferActivities.validate(params.getScenario())) {
-      log.info(
-          "\n\nWaiting on 'approveTransfer' Signal or Update for workflow ID: "
-              + Workflow.getInfo().getWorkflowId()
-              + "\n\n");
-      transferState = "waiting";
-
-      // Wait for the approval signal for up to approvalTime
-      boolean receivedSignal = Workflow.await(Duration.ofSeconds(approvalTime), () -> approved);
-
-      // If the signal was not received within the timeout, fail the workflow
-      if (!receivedSignal) {
-        log.error(
-            "Approval not received within the "
-                + approvalTime
-                + "-second time window: "
-                + "Failing the workflow.");
-        throw ApplicationFailure.newFailure(
-            "Approval not received within " + approvalTime + " seconds", "ApprovalTimeout");
-      }
-    }
-
     // these variables are reflected in the UI
     progressPercentage = 60;
     transferState = "running";
 
-    // withdraw activity
-    if (params.getScenario() == ExecutionScenarioObj.ADVANCED_VISIBILITY) {
-      Workflow.upsertTypedSearchAttributes(WORKFLOW_STEP.valueSet("Withdraw"));
-      Workflow.sleep(Duration.ofSeconds(5)); // for dramatic effect
-    }
-
-    accountTransferActivities.withdraw(params.getAmount(), params.getScenario());
+    accountTransferActivities.withdraw(params.getAmount(), false);
     Workflow.sleep(Duration.ofSeconds(2)); // for dramatic effect
-
-    // Simulate bug in workflow
-    if (params.getScenario() == ExecutionScenarioObj.BUG_IN_WORKFLOW) {
-      // throw an error to simulate a bug in the workflow
-      // uncomment the following line and restart workers to 'fix' the bug
-      log.info("\n\nSimulating workflow task failure.\n\n");
-
-      // throw new RuntimeException("Workflow Bug!");
-    }
-
-    if (params.getScenario() == ExecutionScenarioObj.ADVANCED_VISIBILITY) {
-      Workflow.upsertTypedSearchAttributes(WORKFLOW_STEP.valueSet("Deposit"));
-    }
 
     try {
       String idempotencyKey = Workflow.randomUUID().toString();
       // deposit activity
-      chargeResult =
-          accountTransferActivities.deposit(
-              idempotencyKey, params.getAmount(), params.getScenario());
+      chargeResult = accountTransferActivities.deposit(idempotencyKey, params.getAmount(), false);
     }
     // if deposit() fails in an unrecoverable way, rollback the withdrawal and fail the workflow
     catch (ActivityFailure e) {
@@ -150,7 +103,7 @@ public class AccountTransferWorkflowImpl implements AccountTransferWorkflow {
     progressPercentage = 100;
     transferState = "finished";
 
-    return new ResultObj(chargeResult);
+    return new TransferOutput(chargeResult);
   }
 
   @Override

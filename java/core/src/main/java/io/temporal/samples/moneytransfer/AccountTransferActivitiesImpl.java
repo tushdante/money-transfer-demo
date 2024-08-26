@@ -23,7 +23,6 @@ import io.temporal.activity.Activity;
 import io.temporal.activity.ActivityExecutionContext;
 import io.temporal.activity.ActivityInfo;
 import io.temporal.samples.moneytransfer.dataclasses.ChargeResponseObj;
-import io.temporal.samples.moneytransfer.dataclasses.ExecutionScenarioObj;
 import io.temporal.samples.moneytransfer.helper.ServerInfo;
 import java.io.IOException;
 import okhttp3.OkHttpClient;
@@ -36,23 +35,13 @@ public class AccountTransferActivitiesImpl implements AccountTransferActivities 
   private static final Logger log = LoggerFactory.getLogger(AccountTransferActivitiesImpl.class);
 
   @Override
-  public Boolean validate(ExecutionScenarioObj scenario) {
-    log.info("\n\nAPI /validate\n");
-
-    if (scenario == ExecutionScenarioObj.HUMAN_IN_LOOP) {
-      return false;
-    }
-    return true;
-  }
-
-  @Override
-  public String withdraw(float amountDollars, ExecutionScenarioObj scenario) {
+  public String withdraw(float amountDollars, boolean simulateDelay) {
     log.info("\n\nAPI /withdraw amount = " + amountDollars + " \n");
 
     ActivityExecutionContext ctx = Activity.getExecutionContext();
     ActivityInfo info = ctx.getInfo();
 
-    if (scenario == ExecutionScenarioObj.API_DOWNTIME) {
+    if (simulateDelay) {
       log.info("\n\n*** Simulating API Downtime\n");
       if (info.getAttempt() < 5) {
         log.info("\n*** Activity Attempt: #" + info.getAttempt() + "***\n");
@@ -67,11 +56,11 @@ public class AccountTransferActivitiesImpl implements AccountTransferActivities 
 
   @Override
   public ChargeResponseObj deposit(
-      String idempotencyKey, float amountDollars, ExecutionScenarioObj scenario) {
+      String idempotencyKey, float amountDollars, boolean invalidAccount) {
 
     log.info("\n\nAPI /deposit amount = " + amountDollars + " \n");
 
-    if (scenario == ExecutionScenarioObj.INVALID_ACCOUNT) {
+    if (invalidAccount) {
       InvalidAccountException invalidAccountException =
           new InvalidAccountException("Invalid Account");
       throw Activity.wrap(invalidAccountException);

@@ -25,8 +25,8 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 public class TransferInput {
   // in cents
   private int amount;
-
-  private ExecutionScenarioObj scenario;
+  private String fromAccount;
+  private String toAccount;
 
   // No-arg constructor
   public TransferInput() {}
@@ -35,9 +35,11 @@ public class TransferInput {
   @JsonCreator
   public TransferInput(
       @JsonProperty("amountCents") int amount,
-      @JsonProperty("scenario") ExecutionScenarioObj scenario) {
+      @JsonProperty("fromAccount") String fromAccount,
+      @JsonProperty("toAccount") String toAccount) {
     this.amount = amount;
-    this.scenario = scenario;
+    this.fromAccount = fromAccount;
+    this.toAccount = toAccount;
   }
 
   // Getters
@@ -45,8 +47,12 @@ public class TransferInput {
     return amount;
   }
 
-  public ExecutionScenarioObj getScenario() {
-    return scenario;
+  public String getFromAccount() {
+    return fromAccount;
+  }
+
+  public String getToAccount() {
+    return toAccount;
   }
 
   // Setters
@@ -54,7 +60,11 @@ public class TransferInput {
     this.amount = amount;
   }
 
-  public void setScenario(ExecutionScenarioObj scenario) {
-    this.scenario = scenario;
+  public void setFromAccount(String fromAccount) {
+    this.fromAccount = fromAccount;
+  }
+
+  public void setToAccount(String toAccount) {
+    this.toAccount = toAccount;
   }
 }
