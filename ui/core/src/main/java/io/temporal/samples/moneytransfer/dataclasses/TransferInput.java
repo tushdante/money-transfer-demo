@@ -22,24 +22,49 @@ package io.temporal.samples.moneytransfer.dataclasses;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-public class ResultObj {
-  private ChargeResponseObj chargeResponseObj;
+public class TransferInput {
+  // in cents
+  private int amount;
+  private String fromAccount;
+  private String toAccount;
 
-  // no-arg constructor
-  public ResultObj() {}
+  // No-arg constructor
+  public TransferInput() {}
 
-  // Constructor with JsonProperty annotation
+  // Constructor
   @JsonCreator
-  public ResultObj(@JsonProperty("chargeResponseObj") ChargeResponseObj chargeResponseObj) {
-    this.chargeResponseObj = chargeResponseObj;
+  public TransferInput(
+      @JsonProperty("amountCents") int amount,
+      @JsonProperty("fromAccount") String fromAccount,
+      @JsonProperty("toAccount") String toAccount) {
+    this.amount = amount;
+    this.fromAccount = fromAccount;
+    this.toAccount = toAccount;
   }
 
-  // Getters and Setters
-  public ChargeResponseObj getChargeResponseObj() {
-    return chargeResponseObj;
+  // Getters
+  public int getAmount() {
+    return amount;
   }
 
-  public void setChargeResponseObj(ChargeResponseObj chargeResponseObj) {
-    this.chargeResponseObj = chargeResponseObj;
+  public String getFromAccount() {
+    return fromAccount;
+  }
+
+  public String getToAccount() {
+    return toAccount;
+  }
+
+  // Setters
+  public void setAmount(int amount) {
+    this.amount = amount;
+  }
+
+  public void setFromAccount(String fromAccount) {
+    this.fromAccount = fromAccount;
+  }
+
+  public void setToAccount(String toAccount) {
+    this.toAccount = toAccount;
   }
 }

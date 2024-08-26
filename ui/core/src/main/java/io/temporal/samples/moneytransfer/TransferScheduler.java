@@ -41,7 +41,7 @@ import javax.net.ssl.SSLException;
 
 public class TransferScheduler {
 
-  public static ResultObj getWorkflowOutcome(String workflowId)
+  public static TransferOutput getWorkflowOutcome(String workflowId)
       throws FileNotFoundException, SSLException {
 
     WorkflowClient client = TemporalClient.get();
@@ -49,7 +49,7 @@ public class TransferScheduler {
     WorkflowStub workflowStub = client.newUntypedWorkflowStub(workflowId);
 
     // Returns the result after waiting for the Workflow to complete.
-    ResultObj result = workflowStub.getResult(ResultObj.class);
+    TransferOutput result = workflowStub.getResult(TransferOutput.class);
     return result;
   }
 
@@ -71,7 +71,7 @@ public class TransferScheduler {
     return result;
   }
 
-  public static String runWorkflow(WorkflowParameterObj workflowParameterObj)
+  public static String runWorkflow(TransferInput workflowParameterObj)
       throws FileNotFoundException, SSLException {
     // generate a random reference number
     String referenceNumber = generateReferenceNumber(); // random reference number
@@ -100,9 +100,8 @@ public class TransferScheduler {
     String scheduleNumber = null;
     try {
       int amountCents = scheduleParameterObj.getAmount(); // amount to transfer
-      ExecutionScenarioObj executionScenarioObj = scheduleParameterObj.getScenario();
 
-      WorkflowParameterObj params = new WorkflowParameterObj(amountCents, executionScenarioObj);
+      TransferInput params = new TransferInput(amountCents, "account1", "account2");
 
       ScheduleClient scheduleClient = getScheduleClient();
 
@@ -175,8 +174,7 @@ public class TransferScheduler {
 
     int amountCents = 45; // amount to transfer
 
-    WorkflowParameterObj params =
-        new WorkflowParameterObj(amountCents, ExecutionScenarioObj.HAPPY_PATH);
+    TransferInput params = new TransferInput(amountCents, "account1", "account2");
 
     runWorkflow(params);
 

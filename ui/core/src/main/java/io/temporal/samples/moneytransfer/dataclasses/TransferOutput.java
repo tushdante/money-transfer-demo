@@ -22,39 +22,24 @@ package io.temporal.samples.moneytransfer.dataclasses;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-public class WorkflowParameterObj {
-  // in cents
-  private int amount;
+public class TransferOutput {
+  private ChargeResponseObj chargeResponseObj;
 
-  private ExecutionScenarioObj scenario;
+  // no-arg constructor
+  public TransferOutput() {}
 
-  // No-arg constructor
-  public WorkflowParameterObj() {}
-
-  // Constructor
+  // Constructor with JsonProperty annotation
   @JsonCreator
-  public WorkflowParameterObj(
-      @JsonProperty("amountCents") int amount,
-      @JsonProperty("scenario") ExecutionScenarioObj scenario) {
-    this.amount = amount;
-    this.scenario = scenario;
+  public TransferOutput(@JsonProperty("chargeResponseObj") ChargeResponseObj chargeResponseObj) {
+    this.chargeResponseObj = chargeResponseObj;
   }
 
-  // Getters
-  public int getAmount() {
-    return amount;
+  // Getters and Setters
+  public ChargeResponseObj getChargeResponseObj() {
+    return chargeResponseObj;
   }
 
-  public ExecutionScenarioObj getScenario() {
-    return scenario;
-  }
-
-  // Setters
-  public void setAmount(int amount) {
-    this.amount = amount;
-  }
-
-  public void setScenario(ExecutionScenarioObj scenario) {
-    this.scenario = scenario;
+  public void setChargeResponseObj(ChargeResponseObj chargeResponseObj) {
+    this.chargeResponseObj = chargeResponseObj;
   }
 }

@@ -52,9 +52,10 @@ public class WebServer {
     app.post(
         "/runWorkflow",
         ctx -> {
-          WorkflowParameterObj workflowParameterObj = ctx.bodyAsClass(WorkflowParameterObj.class);
+          UXParameterObj uxParameters = ctx.bodyAsClass(UXParameterObj.class);
+          TransferInput transferInput = uxParameters.toTransferInput();
 
-          String transferId = runWorkflow(workflowParameterObj);
+          String transferId = runWorkflow(transferInput, uxParameters.getScenario());
 
           ctx.json(new AbstractMap.SimpleEntry<>("transferId", transferId));
         });
@@ -96,7 +97,7 @@ public class WebServer {
           // get workflowId from request POST body
           String workflowId = ctx.formParam("workflowId");
 
-          ResultObj workflowOutcome = getWorkflowOutcome(workflowId);
+          TransferOutput workflowOutcome = getWorkflowOutcome(workflowId);
 
           System.out.println("outcome: " + workflowOutcome);
 

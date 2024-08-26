@@ -20,10 +20,20 @@
 package io.temporal.samples.moneytransfer.dataclasses;
 
 public enum ExecutionScenarioObj {
-  HAPPY_PATH,
-  ADVANCED_VISIBILITY,
-  HUMAN_IN_LOOP,
-  API_DOWNTIME,
-  BUG_IN_WORKFLOW,
-  INVALID_ACCOUNT
+  HAPPY_PATH("AccountTransferWorkflow"),
+  ADVANCED_VISIBILITY("AccountTransferWorkflowAdvancedVisibility"),
+  HUMAN_IN_LOOP("AccountTransferWorkflowHumanInLoop"),
+  API_DOWNTIME("AccountTransferWorkflowAPIDowntime"),
+  BUG_IN_WORKFLOW("AccountTransferWorkflowRecoverableFailure"),
+  INVALID_ACCOUNT("AccountTransferWorkflowInvalidAccount");
+
+  private final String workflowType;
+
+  ExecutionScenarioObj(String workflowType) {
+    this.workflowType = workflowType;
+  }
+
+  public String getWorkflowType() {
+    return this.workflowType;
+  }
 }

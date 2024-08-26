@@ -29,9 +29,9 @@ import io.temporal.client.WorkflowClient;
 import io.temporal.client.WorkflowOptions;
 import io.temporal.client.WorkflowStub;
 import io.temporal.samples.moneytransfer.dataclasses.ExecutionScenarioObj;
-import io.temporal.samples.moneytransfer.dataclasses.ResultObj;
 import io.temporal.samples.moneytransfer.dataclasses.StateObj;
-import io.temporal.samples.moneytransfer.dataclasses.WorkflowParameterObj;
+import io.temporal.samples.moneytransfer.dataclasses.TransferInput;
+import io.temporal.samples.moneytransfer.dataclasses.TransferOutput;
 import io.temporal.samples.moneytransfer.web.ServerInfo;
 import io.temporal.serviceclient.WorkflowServiceStubs;
 import java.io.FileNotFoundException;
@@ -39,7 +39,7 @@ import javax.net.ssl.SSLException;
 
 public class TransferRequester {
 
-  public static ResultObj getWorkflowOutcome(String workflowId)
+  public static TransferOutput getWorkflowOutcome(String workflowId)
       throws FileNotFoundException, SSLException {
 
     WorkflowClient client = TemporalClient.get();
@@ -47,7 +47,7 @@ public class TransferRequester {
     WorkflowStub workflowStub = client.newUntypedWorkflowStub(workflowId);
 
     // Returns the result after waiting for the Workflow to complete.
-    ResultObj result = workflowStub.getResult(ResultObj.class);
+    TransferOutput result = workflowStub.getResult(TransferOutput.class);
     return result;
   }
 
@@ -82,8 +82,9 @@ public class TransferRequester {
     }
   }
 
-  public static String runWorkflow(WorkflowParameterObj workflowParameterObj)
+  public static String runWorkflow(TransferInput transferInput, ExecutionScenarioObj scenario)
       throws FileNotFoundException, SSLException {
+
     // generate a random reference number
     String referenceNumber = generateReferenceNumber(); // random reference number
 
@@ -92,16 +93,17 @@ public class TransferRequester {
     WorkflowClient client = TemporalClient.get();
     final String TASK_QUEUE = ServerInfo.getTaskqueue();
 
+    String workflowType = scenario.getWorkflowType();
+
     WorkflowOptions options =
         WorkflowOptions.newBuilder()
             .setWorkflowId(referenceNumber)
             .setTaskQueue(TASK_QUEUE)
             .build();
-    AccountTransferWorkflow transferWorkflow =
-        client.newWorkflowStub(AccountTransferWorkflow.class, options);
+    WorkflowStub transferWorkflow = client.newUntypedWorkflowStub(workflowType, options);
 
-    WorkflowClient.start(transferWorkflow::transfer, workflowParameterObj);
-    System.out.printf("\n\nTransfer of $%d requested\n", workflowParameterObj.getAmount());
+    transferWorkflow.start(transferInput);
+    System.out.printf("\n\nTransfer of $%d requested\n", transferInput.getAmount());
 
     return referenceNumber;
   }
@@ -111,10 +113,9 @@ public class TransferRequester {
 
     int amountCents = 45; // amount to transfer
 
-    WorkflowParameterObj params =
-        new WorkflowParameterObj(amountCents, ExecutionScenarioObj.HAPPY_PATH);
+    TransferInput params = new TransferInput(amountCents, "account1", "account2");
 
-    runWorkflow(params);
+    runWorkflow(params, ExecutionScenarioObj.HAPPY_PATH);
 
     System.exit(0);
   }

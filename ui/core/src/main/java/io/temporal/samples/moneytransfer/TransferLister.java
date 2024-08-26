@@ -42,8 +42,32 @@ public class TransferLister {
 
   public static List<WorkflowStatusObj> listWorkflows() throws FileNotFoundException, SSLException {
 
+    System.out.println("Now is formatted as " + timeStampToString(getNow()));
+
     WorkflowServiceStubs service = getWorkflowServiceStubs();
-    ListOpenWorkflowExecutionsResponse responseOpen =
+
+    ListWorkflowExecutionsResponse responseOpen =
+        service
+            .blockingStub()
+            .listWorkflowExecutions(
+                ListWorkflowExecutionsRequest.newBuilder()
+                    .setNamespace(ServerInfo.getNamespace())
+                    .setQuery(
+                        "ExecutionStatus = 'Running'"
+                            + "AND WorkflowType STARTS_WITH 'AccountTransferWorkflow'"
+                        /* - TODO: figure out filtering older workflows
+                        + "AND StartTime BETWEEN '"
+                        + timeStampToString(getOneHourAgo())
+                        + "'"
+                        + " AND '"
+                        + timeStampToString(getNow())
+                        + "'"
+                             */
+                        )
+                    .build());
+    /*
+    // Doesn't work with dynamic workflows - matches exact workflow type
+    ListOpenWorkflowExecutionsResponse responseOpen2 =
         service
             .blockingStub()
             .listOpenWorkflowExecutions(
@@ -51,9 +75,11 @@ public class TransferLister {
                     .setStartTimeFilter(
                         StartTimeFilter.newBuilder().setEarliestTime(getOneHourAgo()).build())
                     .setTypeFilter(
-                        WorkflowTypeFilter.newBuilder().setName("moneyTransferWorkflow").build())
+                        WorkflowTypeFilter.newBuilder().setName("AccountTransferWorkflow").build())
                     .setNamespace(ServerInfo.getNamespace())
                     .build());
+
+     */
 
     ListClosedWorkflowExecutionsResponse responseClosed =
         service
@@ -63,7 +89,7 @@ public class TransferLister {
                     .setStartTimeFilter(
                         StartTimeFilter.newBuilder().setEarliestTime(getOneHourAgo()).build())
                     .setTypeFilter(
-                        WorkflowTypeFilter.newBuilder().setName("moneyTransferWorkflow").build())
+                        WorkflowTypeFilter.newBuilder().setName("AccountTransferWorkflow").build())
                     .setNamespace(ServerInfo.getNamespace())
                     .build());
 
@@ -102,6 +128,22 @@ public class TransferLister {
     List<String> parts = Splitter.on('_').splitToList(input);
 
     return parts.get(parts.size() - 1); // Return the last part
+  }
+
+  private static String timeStampToString(Timestamp aTime) {
+    return aTime.toString();
+  }
+
+  private static Timestamp getNow() {
+    LocalDateTime now = LocalDateTime.now(ZoneId.of("UTC"));
+    Instant instant = now.atZone(ZoneId.of("UTC")).toInstant();
+    Timestamp timestamp =
+        Timestamp.newBuilder()
+            .setSeconds(instant.getEpochSecond())
+            .setNanos(instant.getNano())
+            .build();
+
+    return timestamp;
   }
 
   private static Timestamp getOneHourAgo() {
