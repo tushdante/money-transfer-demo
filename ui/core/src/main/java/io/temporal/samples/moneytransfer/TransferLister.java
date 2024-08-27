@@ -23,14 +23,13 @@ import static io.temporal.samples.moneytransfer.TemporalClient.getWorkflowServic
 
 import com.google.common.base.Splitter;
 import com.google.protobuf.Timestamp;
-import io.temporal.api.filter.v1.StartTimeFilter;
-import io.temporal.api.filter.v1.WorkflowTypeFilter;
 import io.temporal.api.workflow.v1.WorkflowExecutionInfo;
 import io.temporal.api.workflowservice.v1.*;
 import io.temporal.samples.moneytransfer.dataclasses.WorkflowStatusObj;
 import io.temporal.samples.moneytransfer.web.ServerInfo;
 import io.temporal.serviceclient.WorkflowServiceStubs;
 import java.io.FileNotFoundException;
+import java.text.SimpleDateFormat;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
@@ -41,8 +40,6 @@ import javax.net.ssl.SSLException;
 public class TransferLister {
 
   public static List<WorkflowStatusObj> listWorkflows() throws FileNotFoundException, SSLException {
-
-    System.out.println("Now is formatted as " + timeStampToString(getNow()));
 
     WorkflowServiceStubs service = getWorkflowServiceStubs();
 
@@ -55,42 +52,29 @@ public class TransferLister {
                     .setQuery(
                         "ExecutionStatus = 'Running'"
                             + "AND WorkflowType STARTS_WITH 'AccountTransferWorkflow'"
-                        /* - TODO: figure out filtering older workflows
-                        + "AND StartTime BETWEEN '"
-                        + timeStampToString(getOneHourAgo())
-                        + "'"
-                        + " AND '"
-                        + timeStampToString(getNow())
-                        + "'"
-                             */
-                        )
-                    .build());
-    /*
-    // Doesn't work with dynamic workflows - matches exact workflow type
-    ListOpenWorkflowExecutionsResponse responseOpen2 =
-        service
-            .blockingStub()
-            .listOpenWorkflowExecutions(
-                ListOpenWorkflowExecutionsRequest.newBuilder()
-                    .setStartTimeFilter(
-                        StartTimeFilter.newBuilder().setEarliestTime(getOneHourAgo()).build())
-                    .setTypeFilter(
-                        WorkflowTypeFilter.newBuilder().setName("AccountTransferWorkflow").build())
-                    .setNamespace(ServerInfo.getNamespace())
+                            + "AND StartTime BETWEEN '"
+                            + timeStampToString(getOneHourAgo())
+                            + "'"
+                            + " AND '"
+                            + timeStampToString(getNow())
+                            + "'")
                     .build());
 
-     */
-
-    ListClosedWorkflowExecutionsResponse responseClosed =
+    ListWorkflowExecutionsResponse responseClosed =
         service
             .blockingStub()
-            .listClosedWorkflowExecutions(
-                ListClosedWorkflowExecutionsRequest.newBuilder()
-                    .setStartTimeFilter(
-                        StartTimeFilter.newBuilder().setEarliestTime(getOneHourAgo()).build())
-                    .setTypeFilter(
-                        WorkflowTypeFilter.newBuilder().setName("AccountTransferWorkflow").build())
+            .listWorkflowExecutions(
+                ListWorkflowExecutionsRequest.newBuilder()
                     .setNamespace(ServerInfo.getNamespace())
+                    .setQuery(
+                        "ExecutionStatus != 'Running'"
+                            + "AND WorkflowType STARTS_WITH 'AccountTransferWorkflow'"
+                            + "AND StartTime BETWEEN '"
+                            + timeStampToString(getOneHourAgo())
+                            + "'"
+                            + " AND '"
+                            + timeStampToString(getNow())
+                            + "'")
                     .build());
 
     // array of WorkflowStatusObj
@@ -131,7 +115,8 @@ public class TransferLister {
   }
 
   private static String timeStampToString(Timestamp aTime) {
-    return aTime.toString();
+    java.sql.Timestamp javaTimestamp = new java.sql.Timestamp(aTime.getSeconds() * 1000);
+    return new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSXXX").format(javaTimestamp);
   }
 
   private static Timestamp getNow() {
