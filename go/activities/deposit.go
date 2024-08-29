@@ -15,9 +15,9 @@ func Deposit(ctx context.Context, idempotencyKey string, amountDollars float32, 
 		return app.ChargeResponseObj{}, errors.New("invalid account")
 	}
 
-	response := &app.ChargeResponseObj{
+	response := app.ChargeResponseObj{
 		ChargeId: "example-charge-id",
 	}
 
-	return *response, nil
+	return response, nil
 }

@@ -77,8 +77,6 @@ public class WebServer {
           WorkflowIdObj workflowIdObj = ctx.bodyAsClass(WorkflowIdObj.class);
           String workflowId = workflowIdObj.getWorkflowId();
 
-          System.out.println("QUERY workflowId: " + workflowId);
-
           StateObj transferState = runQuery(workflowId);
 
           // System.out.println("state: " + transferState);
@@ -98,8 +96,6 @@ public class WebServer {
           String workflowId = ctx.formParam("workflowId");
 
           TransferOutput workflowOutcome = getWorkflowOutcome(workflowId);
-
-          System.out.println("outcome: " + workflowOutcome);
 
           ctx.json(workflowOutcome);
         });

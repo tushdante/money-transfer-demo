@@ -71,13 +71,22 @@ func MoneyTransferWorkflow(ctx workflow.Context, input app.TransferInput) (outpu
 		return nil, fmt.Errorf("deposit failed %w", err)
 	}
 
-	logger.Info("Deposit returned ", depositResult)
+	logger.Info("Deposit ", "result", depositResult)
 
 	workflowState.ProgressPercentage = 80
 
 	sleep(ctx, 6, &workflowState.ProgressPercentage, 100)
 
 	workflowState.TransferState = "finished"
+	workflowState.ChargeResult = depositResult
+
+	output = &app.TransferOutput{
+		ChargeResponseObj: app.ChargeResponseObj{
+			ChargeId: depositResult.ChargeId,
+		},
+	}
+
+	logger.Info("workflow returning", "output", output)
 
 	return output, nil
 }

@@ -26,6 +26,21 @@ func main() {
 	w.RegisterWorkflowWithOptions(workflows.MoneyTransferWorkflow, workflow.RegisterOptions{
 		Name: "AccountTransferWorkflow",
 	})
+	w.RegisterWorkflowWithOptions(workflows.MoneyTransferWorkflowScenarios, workflow.RegisterOptions{
+		Name: "AccountTransferWorkflowAdvancedVisibility",
+	})
+	w.RegisterWorkflowWithOptions(workflows.MoneyTransferWorkflowScenarios, workflow.RegisterOptions{
+		Name: "AccountTransferWorkflowHumanInLoop",
+	})
+	w.RegisterWorkflowWithOptions(workflows.MoneyTransferWorkflowScenarios, workflow.RegisterOptions{
+		Name: "AccountTransferWorkflowAPIDowntime",
+	})
+	w.RegisterWorkflowWithOptions(workflows.MoneyTransferWorkflowScenarios, workflow.RegisterOptions{
+		Name: "AccountTransferWorkflowRecoverableFailure",
+	})
+	w.RegisterWorkflowWithOptions(workflows.MoneyTransferWorkflowScenarios, workflow.RegisterOptions{
+		Name: "AccountTransferWorkflowInvalidAccount",
+	})
 
 	// activities
 	w.RegisterActivity(activities.Deposit)
