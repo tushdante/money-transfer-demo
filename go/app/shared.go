@@ -1,7 +1,7 @@
 package app
 
 type TransferInput struct {
-	Amount      int    `json:"amountCent"s`
+	Amount      int    `json:"amount"s`
 	FromAccount string `json:"fromAccount""`
 	ToAccount   string `json:"toAccount""`
 }
