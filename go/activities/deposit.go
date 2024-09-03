@@ -2,8 +2,8 @@ package activities
 
 import (
 	"context"
-	"errors"
 	"go.temporal.io/sdk/activity"
+	"go.temporal.io/sdk/temporal"
 	"money-transfer-worker/app"
 )
 
@@ -12,7 +12,8 @@ func Deposit(ctx context.Context, idempotencyKey string, amountDollars float32, 
 	logger.Info("API /deposit", "amount = ", amountDollars)
 
 	if invalidAccount {
-		return app.ChargeResponseObj{}, errors.New("invalid account")
+		return app.ChargeResponseObj{},
+			temporal.NewNonRetryableApplicationError("invalid account", "invalid_account", nil)
 	}
 
 	response := app.ChargeResponseObj{
