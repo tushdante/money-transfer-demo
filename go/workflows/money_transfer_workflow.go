@@ -13,7 +13,7 @@ import (
 func MoneyTransferWorkflow(ctx workflow.Context, input app.TransferInput) (output *app.TransferOutput, err error) {
 	// name := workflow.GetInfo(ctx).WorkflowType.Name
 	logger := workflow.GetLogger(ctx)
-	logger.Info("Processing workflow started", "fromAccount", input.FromAccount)
+	logger.Info("Processing workflow started", "fromAccount", input.FromAccount, "toAccount", input.ToAccount, "Amount", input.Amount)
 
 	// expose progress as a query
 	workflowState, err := messages.SetQueryHandlerForStatus(ctx)

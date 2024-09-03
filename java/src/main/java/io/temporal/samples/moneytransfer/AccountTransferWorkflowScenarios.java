@@ -100,6 +100,7 @@ public class AccountTransferWorkflowScenarios implements DynamicWorkflow {
 
         // withdraw activity
         if (ADVANCED_VISIBILITY.equals(type)) {
+            log.info("Advanced visibility .. withdraw");
             Workflow.upsertTypedSearchAttributes(WORKFLOW_STEP.valueSet("Withdraw"));
             Workflow.sleep(Duration.ofSeconds(5)); // for dramatic effect
         }
@@ -118,6 +119,7 @@ public class AccountTransferWorkflowScenarios implements DynamicWorkflow {
         }
 
         if (ADVANCED_VISIBILITY.equals(type)) {
+            log.info("Advanced visibility .. deposit");
             Workflow.upsertTypedSearchAttributes(WORKFLOW_STEP.valueSet("Deposit"));
         }
 
