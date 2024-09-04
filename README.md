@@ -1,5 +1,15 @@
 # Money Transfer 
-Demonstrates a simple Money Transfer in Temporal using different languages. 
+Demonstrates a simple Money Transfer in Temporal implemented in different languages. 
+
+The workflow is designed so that the "Happy Path" is one workflow and all other scenarios are implemented using a Dyanmic Workflow.
+
+Scenarios currently implemented include
+* Happy Path                - everything works as intended
+* Advanced Visibility       - updates a Search Attribute (Step) as it progesses through the workflow
+* Require Human in the Loop - Shows how to use a signal with timeouts if not approved in time
+* API Downtime              - Demonstrates an unreliable API (recovers after the 5th attempt)
+* Bug in Workflow           - Purposefully throws/raises an error (fix and redeploy the worker)
+* Invalid Account           - How to exit a workflow for business purposes (fail the workflow)
 
 ## Running the Demo locally
 Start Temporal Locally
