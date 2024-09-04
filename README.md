@@ -81,14 +81,18 @@ cd ui
 ./startcloudwebui.sh
 ```
 
-### Start the Worker - Java
+### Start a Worker
+
+Now start a worker. You can choose to use the Java or Go Worker below
+
+#### Java Worker
 In a new terminal, start the Java Worker
 ```bash
 cd java
 ./startcloudworker.sh
 ```
 
-### Start the Worker - Golang
+### Golang Worker
 In a new terminal, start the Golang Worker
 
 ```bash
