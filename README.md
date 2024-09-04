@@ -23,14 +23,18 @@ cd ui
 
 Navigate to http://localhost:7000 in a web browser to interact with the UX
 
-### Start the Worker - Java
-In a new terminal, start the Java Worker
+### Start a worker
+
+Now start a worker. You can choose to use the Java or Go Worker below
+
+#### Java Worker
+In a new terminal, start the Java Worker 
 ```bash
 cd java
 ./startlocalworker.sh
 ```
 
-### Start the Worker - Golang
+#### Golang Worker
 In a new terminal, start the Golang Worker
 
 ```bash
@@ -39,7 +43,7 @@ go run worker/main.go
 ```
 
 ## Running the Demo on Temporal Cloud
-Set up a search attribute in your namespace using the followign command
+Set up a search attribute in your namespace using the following command
 
 ```bash
 tcld login
