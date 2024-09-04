@@ -49,7 +49,7 @@ In a new terminal, start the Golang Worker
 
 ```bash
 cd go
-go run worker/main.go
+./startlocalworker.sh
 ```
 
 ## Running the Demo on Temporal Cloud
@@ -97,5 +97,5 @@ In a new terminal, start the Golang Worker
 
 ```bash
 cd go
-go run worker/main.go
+./startcloudworker.sh
 ```
