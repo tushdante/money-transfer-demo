@@ -35,7 +35,7 @@ Navigate to http://localhost:7000 in a web browser to interact with the UX
 
 ### Start a worker
 
-Now start a worker. You can choose to use the Java or Go Worker below
+Now start a worker. You can choose to use the Java, Go or .NET Worker below
 
 #### Java Worker
 In a new terminal, start the Java Worker 
@@ -49,6 +49,14 @@ In a new terminal, start the Golang Worker
 
 ```bash
 cd go
+./startlocalworker.sh
+```
+
+#### .NET Worker
+In a new terminal, start the .NET Worker
+
+```bash
+cd dotnet
 ./startlocalworker.sh
 ```
 
@@ -83,7 +91,7 @@ cd ui
 
 ### Start a Worker
 
-Now start a worker. You can choose to use the Java or Go Worker below
+Now start a worker. You can choose to use the Java, Go or .NET Worker below
 
 #### Java Worker
 In a new terminal, start the Java Worker
@@ -92,10 +100,18 @@ cd java
 ./startcloudworker.sh
 ```
 
-### Golang Worker
+#### Golang Worker
 In a new terminal, start the Golang Worker
 
 ```bash
 cd go
+./startcloudworker.sh
+```
+
+#### .NET Worker
+In a new terminal, start the .NET Worker
+
+```bash
+cd dotnet
 ./startcloudworker.sh
 ```
