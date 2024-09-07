@@ -1,5 +1,6 @@
 package io.temporal.samples.moneytransfer.model;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -8,9 +9,11 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class TransferStatus {
+
     private int progressPercentage;
     private String transferState;
     private String workflowStatus;
-    private ChargeResponse chargeResult;
+    @JsonProperty("chargeResult")
+    private DepositResponse depositResponse;
     private int approvalTime;
 }

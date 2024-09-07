@@ -1,5 +1,6 @@
 package io.temporal.samples.moneytransfer.model;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -7,6 +8,8 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class ChargeResponse {
-    private String chargeId;
+public class DepositResponse {
+
+    @JsonProperty("chargeId")
+    private String depositId;
 }

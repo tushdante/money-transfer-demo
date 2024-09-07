@@ -1,6 +1,10 @@
 package io.temporal.samples.moneytransfer;
 
-import io.temporal.samples.moneytransfer.helper.ServerInfo;
+import io.temporal.samples.moneytransfer.activities.AccountTransferActivities;
+import io.temporal.samples.moneytransfer.activities.AccountTransferActivitiesImpl;
+import io.temporal.samples.moneytransfer.util.ServerInfo;
+import io.temporal.samples.moneytransfer.workflows.AccountTransferWorkflowImpl;
+import io.temporal.samples.moneytransfer.workflows.AccountTransferWorkflowScenarios;
 import io.temporal.worker.Worker;
 import io.temporal.worker.WorkerFactory;
 
@@ -13,17 +17,10 @@ public class AccountTransferWorker {
         // worker factory that can be used to create workers for specific task queues
         WorkerFactory factory = WorkerFactory.newInstance(TemporalClient.get());
         Worker workerForCommonTaskQueue = factory.newWorker(TASK_QUEUE);
-        workerForCommonTaskQueue.registerWorkflowImplementationTypes(
-                AccountTransferWorkflowImpl.class
-        );
-        workerForCommonTaskQueue.registerWorkflowImplementationTypes(
-                AccountTransferWorkflowScenarios.class
-        );
-        AccountTransferActivities accountTransferActivities =
-                new AccountTransferActivitiesImpl();
-        workerForCommonTaskQueue.registerActivitiesImplementations(
-                accountTransferActivities
-        );
+        workerForCommonTaskQueue.registerWorkflowImplementationTypes(AccountTransferWorkflowImpl.class);
+        workerForCommonTaskQueue.registerWorkflowImplementationTypes(AccountTransferWorkflowScenarios.class);
+        AccountTransferActivities accountTransferActivities = new AccountTransferActivitiesImpl();
+        workerForCommonTaskQueue.registerActivitiesImplementations(accountTransferActivities);
         // Start all workers created by this factory.
         factory.start();
         System.out.println("Worker started for task queue: " + TASK_QUEUE);

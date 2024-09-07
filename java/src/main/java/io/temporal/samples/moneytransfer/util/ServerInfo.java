@@ -1,4 +1,4 @@
-package io.temporal.samples.moneytransfer.helper;
+package io.temporal.samples.moneytransfer.util;
 
 import java.util.HashMap;
 import java.util.Map;

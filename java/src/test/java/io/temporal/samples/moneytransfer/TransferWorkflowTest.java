@@ -2,9 +2,14 @@ package io.temporal.samples.moneytransfer;
 
 import io.temporal.client.WorkflowOptions;
 import io.temporal.client.WorkflowStub;
-import io.temporal.samples.moneytransfer.model.ChargeResponse;
+import io.temporal.samples.moneytransfer.activities.AccountTransferActivities;
+import io.temporal.samples.moneytransfer.activities.AccountTransferActivitiesImpl;
+import io.temporal.samples.moneytransfer.model.DepositResponse;
 import io.temporal.samples.moneytransfer.model.TransferInput;
 import io.temporal.samples.moneytransfer.model.TransferOutput;
+import io.temporal.samples.moneytransfer.workflows.AccountTransferWorkflow;
+import io.temporal.samples.moneytransfer.workflows.AccountTransferWorkflowImpl;
+import io.temporal.samples.moneytransfer.workflows.AccountTransferWorkflowScenarios;
 import io.temporal.testing.TestWorkflowRule;
 import org.junit.After;
 import org.junit.Rule;
@@ -29,11 +34,7 @@ public class TransferWorkflowTest {
      */
     @Test
     public void testWorkflowHappyPath() {
-        testWorkflowRule
-                .getWorker()
-                .registerActivitiesImplementations(
-                        new AccountTransferActivitiesImpl()
-                );
+        testWorkflowRule.getWorker().registerActivitiesImplementations(new AccountTransferActivitiesImpl());
         testWorkflowRule.getTestEnvironment().start();
 
         // Get a workflow stub using the same task queue the worker uses.
@@ -41,9 +42,7 @@ public class TransferWorkflowTest {
                 .getWorkflowClient()
                 .newWorkflowStub(
                         AccountTransferWorkflow.class,
-                        WorkflowOptions.newBuilder()
-                                .setTaskQueue(testWorkflowRule.getTaskQueue())
-                                .build()
+                        WorkflowOptions.newBuilder().setTaskQueue(testWorkflowRule.getTaskQueue()).build()
                 );
         // Execute a workflow waiting for it to complete.
         TransferInput transferInput = new TransferInput();
@@ -55,10 +54,8 @@ public class TransferWorkflowTest {
 
         TransferOutput result = workflow.transfer(transferInput);
         assertEquals(
-                new TransferOutput(new ChargeResponse("example-charge-id"))
-                        .getChargeResponse()
-                        .getChargeId(),
-                result.getChargeResponse().getChargeId()
+                new TransferOutput(new DepositResponse("example-transfer-id")).getDepositResponse().getDepositId(),
+                result.getDepositResponse().getDepositId()
         );
     }
 
@@ -67,11 +64,7 @@ public class TransferWorkflowTest {
      */
     @Test
     public void testWorkflowHumanInLoop() {
-        testWorkflowRule
-                .getWorker()
-                .registerActivitiesImplementations(
-                        new AccountTransferActivitiesImpl()
-                );
+        testWorkflowRule.getWorker().registerActivitiesImplementations(new AccountTransferActivitiesImpl());
         testWorkflowRule.getTestEnvironment().start();
 
         String WORKFLOW_ID = "HumanInLoopWorkflow";
@@ -99,15 +92,11 @@ public class TransferWorkflowTest {
 
         workflowStub.signal("approveTransfer");
 
-        TransferOutput transferOutput = workflowStub.getResult(
-                TransferOutput.class
-        );
+        TransferOutput transferOutput = workflowStub.getResult(TransferOutput.class);
 
         assertEquals(
-                new TransferOutput(new ChargeResponse("example-charge-id"))
-                        .getChargeResponse()
-                        .getChargeId(),
-                transferOutput.getChargeResponse().getChargeId()
+                new TransferOutput(new DepositResponse("example-transfer-id")).getDepositResponse().getDepositId(),
+                transferOutput.getDepositResponse().getDepositId()
         );
     }
 
@@ -121,17 +110,11 @@ public class TransferWorkflowTest {
                 withSettings().withoutAnnotations()
         );
 
-        ChargeResponse chargeResponse = new ChargeResponse(
-                "example-charge-id"
-        );
+        DepositResponse depositResponse = new DepositResponse("example-charge-id");
 
-        when(activities.withdraw(100.0f, false)).thenReturn("SUCCESS");
-        when(activities.deposit(anyString(), eq(100.0f), eq(false))).thenReturn(
-                chargeResponse
-        );
-        testWorkflowRule
-                .getWorker()
-                .registerActivitiesImplementations(activities);
+        when(activities.withdraw(anyString(), eq(100.0f), anyString())).thenReturn("SUCCESS");
+        when(activities.deposit(anyString(), eq(100.0f), anyString())).thenReturn(depositResponse);
+        testWorkflowRule.getWorker().registerActivitiesImplementations(activities);
         testWorkflowRule.getTestEnvironment().start();
 
         // Get a workflow stub using the same task queue the worker uses.
@@ -139,9 +122,7 @@ public class TransferWorkflowTest {
                 .getWorkflowClient()
                 .newWorkflowStub(
                         AccountTransferWorkflow.class,
-                        WorkflowOptions.newBuilder()
-                                .setTaskQueue(testWorkflowRule.getTaskQueue())
-                                .build()
+                        WorkflowOptions.newBuilder().setTaskQueue(testWorkflowRule.getTaskQueue()).build()
                 );
         // Execute a workflow waiting for it to complete.
         TransferInput transferInput = new TransferInput();
@@ -153,10 +134,8 @@ public class TransferWorkflowTest {
 
         TransferOutput result = workflow.transfer(transferInput);
         assertEquals(
-                new TransferOutput(new ChargeResponse("example-charge-id"))
-                        .getChargeResponse()
-                        .getChargeId(),
-                result.getChargeResponse().getChargeId()
+                new TransferOutput(new DepositResponse("example-charge-id")).getDepositResponse().getDepositId(),
+                result.getDepositResponse().getDepositId()
         );
     }
 

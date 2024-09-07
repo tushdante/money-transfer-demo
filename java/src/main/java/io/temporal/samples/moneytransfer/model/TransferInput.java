@@ -8,6 +8,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class TransferInput {
+
     private int amount;
     private String fromAccount;
     private String toAccount;

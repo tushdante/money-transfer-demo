@@ -1,4 +1,4 @@
-package io.temporal.samples.moneytransfer.dataconverter;
+package io.temporal.samples.moneytransfer.util;
 
 import com.google.protobuf.ByteString;
 import io.temporal.api.common.v1.Payload;

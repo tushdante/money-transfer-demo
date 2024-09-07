@@ -1,6 +1,5 @@
-package io.temporal.samples.moneytransfer;
+package io.temporal.samples.moneytransfer.workflows;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import io.temporal.samples.moneytransfer.model.TransferStatus;
 import io.temporal.workflow.QueryMethod;
 import io.temporal.workflow.SignalMethod;
@@ -9,10 +8,10 @@ import io.temporal.workflow.UpdateValidatorMethod;
 
 public interface AccountTransferMessages {
     @QueryMethod(name = "transferStatus")
-    TransferStatus getStateQuery() throws JsonProcessingException;
+    TransferStatus queryTransferStatus();
 
     @SignalMethod(name = "approveTransfer")
-    void approveTransfer();
+    void approveTransferSignal();
 
     @UpdateMethod
     String approveTransferUpdate();
