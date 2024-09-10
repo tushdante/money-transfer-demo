@@ -48,14 +48,14 @@ public class AccountTransferWorkflowScenarios implements DynamicWorkflow {
         // Validate
         upsertStep("Validate", type);
         activities.validate(input);
-        updateProgress("running", 25, 1);
+        updateProgress(25, 1);
 
         if (NEEDS_APPROVAL.equals(type)) {
             log.info(
                     "Waiting on 'approveTransfer' Signal or Update for workflow ID: {}",
                     Workflow.getInfo().getWorkflowId()
             );
-            transferState = "waiting";
+            updateProgress(30, 0, "waiting");
 
             // Wait for the approval signal for up to approvalTime
             boolean receivedSignal = Workflow.await(Duration.ofSeconds(approvalTime), () -> approved);
@@ -76,7 +76,7 @@ public class AccountTransferWorkflowScenarios implements DynamicWorkflow {
         // Withdraw
         upsertStep("Withdraw", type);
         activities.withdraw(idempotencyKey, input.getAmount(), type);
-        updateProgress("running", 50, 3);
+        updateProgress(50, 3);
 
         if (BUG.equals(type)) {
             // Simulate bug
@@ -87,7 +87,7 @@ public class AccountTransferWorkflowScenarios implements DynamicWorkflow {
         upsertStep("Deposit", type);
         try {
             depositResponse = activities.deposit(idempotencyKey, input.getAmount(), type);
-            updateProgress("running", 75, 1);
+            updateProgress(75, 1);
         } catch (ActivityFailure e) {
             // if deposit fails in an unrecoverable way, rollback the withdrawal and fail the workflow
             log.info("Deposit failed unrecoverable error, reverting withdraw");
@@ -103,7 +103,7 @@ public class AccountTransferWorkflowScenarios implements DynamicWorkflow {
         // Send Notification
         upsertStep("Send Notification", type);
         activities.sendNotification(input);
-        updateProgress("finished", 100, 1);
+        updateProgress(100, 1, "finished");
 
         return new TransferOutput(depositResponse);
     }
@@ -115,7 +115,11 @@ public class AccountTransferWorkflowScenarios implements DynamicWorkflow {
         }
     }
 
-    private void updateProgress(String transferState, int progress, int sleep) {
+    private void updateProgress(int progress, int sleep) {
+        updateProgress(progress, sleep, "running");
+    }
+
+    private void updateProgress(int progress, int sleep, String transferState) {
         if (sleep > 0) {
             Workflow.sleep(Duration.ofSeconds(sleep));
         }

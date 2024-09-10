@@ -31,19 +31,19 @@ public class AccountTransferWorkflowImpl implements AccountTransferWorkflow {
 
         // Validate
         activities.validate(input);
-        updateProgress("running", 25, 1);
+        updateProgress(25, 1);
 
         // Withdraw
         activities.withdraw(idempotencyKey, input.getAmount(), type);
-        updateProgress("running", 50, 3);
+        updateProgress(50, 3);
 
         // Deposit
         depositResponse = activities.deposit(idempotencyKey, input.getAmount(), type);
-        updateProgress("running", 75, 1);
+        updateProgress(75, 1);
 
         // Send Notification
         activities.sendNotification(input);
-        updateProgress("finished", 100, 1);
+        updateProgress(100, 1, "finished");
 
         return new TransferOutput(depositResponse);
     }
@@ -53,7 +53,11 @@ public class AccountTransferWorkflowImpl implements AccountTransferWorkflow {
         return new TransferStatus(progress, transferState, "", depositResponse, 0);
     }
 
-    private void updateProgress(String transferState, int progress, int sleep) {
+    private void updateProgress(int progress, int sleep) {
+        updateProgress(progress, sleep, "running");
+    }
+
+    private void updateProgress(int progress, int sleep, String transferState) {
         if (sleep > 0) {
             Workflow.sleep(Duration.ofSeconds(sleep));
         }

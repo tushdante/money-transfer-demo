@@ -16,14 +16,11 @@ ext {
 
 dependencies {
     implementation 'io.javalin:javalin:5.6.5'
-    implementation 'com.squareup.okhttp3:okhttp:3.14.6'
     implementation "io.temporal:temporal-sdk:$javaSDKVersion"
     implementation 'ch.qos.logback:logback-classic:1.5.7'
 
     compileOnly 'org.projectlombok:lombok:1.18.34'
     annotationProcessor 'org.projectlombok:lombok:1.18.34'
-
-    implementation "io.temporal:temporal-testing:$javaSDKVersion"
 
     testImplementation "io.temporal:temporal-testing:$javaSDKVersion"
     testImplementation "junit:junit:4.13.2"

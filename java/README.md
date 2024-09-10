@@ -117,22 +117,3 @@ You can decrypt these payloads in Temporal Cloud's UI/cli using the codec server
 `https://codec.tmprl-demo.cloud` ([source](https://github.com/steveandroulakis/temporal-codec-server)). Ensure you
 switch on "Pass the user access token with your endpoint". Note: The codec server is only compatible with workflows
 running in Temporal Cloud.
-
-## Test for non-determinism errors (Replay)
-
-Example command (run from root directory)
-
-```bash
-./gradlew -q execute -PmainClass=io.temporal.samples.moneytransfer.Replayer \
- -Parg=../workflowHistories/human-in-loop-approved.json
-```
-
-Introduce a non-determinism error by adding Workflow.Sleep or re-arranging activity executions:
-
-```bash
- error=io.temporal.worker.NonDeterministicException:
-  Failure handling event 15 of type 'EVENT_TYPE_ACTIVITY_TASK_SCHEDULED' during replay.
-  No command scheduled that corresponds to event_id: 15
-```
-
-Note: This replayer doesn't work with histories using ENCRYPT_PAYLOADS=true
