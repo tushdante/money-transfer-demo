@@ -8,7 +8,7 @@ import io.temporal.workflow.*;
 
 @WorkflowInterface
 public interface AccountTransferWorkflow {
-    @WorkflowMethod(name = "moneyTransferWorkflow")
+    @WorkflowMethod
     TransferOutput transfer(TransferInput params);
 
     @QueryMethod(name = "transferStatus")
