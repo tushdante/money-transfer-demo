@@ -2,26 +2,39 @@ package activities
 
 import (
 	"context"
+	"errors"
+
 	"go.temporal.io/sdk/activity"
-	"time"
 )
 
-func Withdraw(ctx context.Context, amountDollars float32, simulateDelay bool) (string, error) {
-	logger := activity.GetLogger(ctx)
-	logger.Info("API /withdraw", "amount = ", amountDollars)
+const (
+	API_DOWNTIME = "AccountTransferWorkflowAPIDowntime"
+)
 
-	info := activity.GetInfo(ctx)
-	if simulateDelay {
-		logger.Info("*** Simulating API downtime")
-		if info.Attempt < 5 {
-			logger.Info("Activity", "attempt # ", info.Attempt)
-			delaySeconds := 7
-			logger.Info("simulateDelay", "Seconds", delaySeconds)
-			time.Sleep(time.Duration(delaySeconds) * time.Second)
-		}
+func Withdraw(ctx context.Context, idempotencyKey string, amount float32, name string) (string, error) {
+	logger := activity.GetLogger(ctx)
+	logger.Info("Withdraw activity started", "amount", amount)
+	attempt := activity.GetInfo(ctx).Attempt
+
+	// simulate external API call
+	error := simulateExternalOperationWithError(1000, name, attempt)
+	logger.Info("Withdraw call complete", "name", name, "error", error)
+
+	if API_DOWNTIME == error {
+		// a transient error, which can be retried
+		logger.Info("Withdraw API unavailable", "attempt", attempt)
+		return "", errors.New("withdraw activity failed, API unavailable")
 	}
 
-	logger.Info("Returning success fro Withdraw")
-
 	return "SUCCESS", nil
+}
+
+func UndoWithdraw(ctx context.Context, amount float32) (bool, error) {
+	logger := activity.GetLogger(ctx)
+	logger.Info("Undo Withdraw activity started", "amount", amount)
+
+	// simulate external API call
+	simulateExternalOperation(1000)
+
+	return true, nil
 }

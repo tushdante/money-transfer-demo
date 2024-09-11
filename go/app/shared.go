@@ -1,23 +1,23 @@
 package app
 
 type TransferInput struct {
-	Amount      int    `json:"amount"s`
-	FromAccount string `json:"fromAccount""`
-	ToAccount   string `json:"toAccount""`
+	Amount      int    `json:"amount"`
+	FromAccount string `json:"fromAccount"`
+	ToAccount   string `json:"toAccount"`
 }
 
-type ChargeResponseObj struct {
-	ChargeId string `json:"chargeId""`
+type DepositResponse struct {
+	DepositId string `json:"chargeId"`
 }
 
 type TransferOutput struct {
-	ChargeResponseObj ChargeResponseObj `json:"chargeResponseObj""`
+	DepositResponse DepositResponse `json:"depositResponse"`
 }
 
-type TransferState struct {
-	ApprovalTime       int               `json:"approvalTime""`
-	ProgressPercentage int               `json:"progressPercentage""`
-	TransferState      string            `json:"transferState""`
-	WorkflowStatus     string            `json:"workflowStatus""`
-	ChargeResult       ChargeResponseObj `json:"chargeResult""`
+type TransferStatus struct {
+	ProgressPercentage int             `json:"progressPercentage"`
+	TransferState      string          `json:"transferState"`
+	WorkflowStatus     string          `json:"workflowStatus"`
+	DepositResponse    DepositResponse `json:"chargeResult"`
+	ApprovalTime       int             `json:"approvalTime"`
 }

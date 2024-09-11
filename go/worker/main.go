@@ -2,15 +2,16 @@ package main
 
 import (
 	"crypto/tls"
-	"go.temporal.io/sdk/client"
-	tlog "go.temporal.io/sdk/log"
-	"go.temporal.io/sdk/worker"
-	"go.temporal.io/sdk/workflow"
 	"log"
 	"log/slog"
 	"money-transfer-worker/activities"
 	"money-transfer-worker/workflows"
 	"os"
+
+	"go.temporal.io/sdk/client"
+	tlog "go.temporal.io/sdk/log"
+	"go.temporal.io/sdk/worker"
+	"go.temporal.io/sdk/workflow"
 )
 
 func main() {
@@ -23,66 +24,31 @@ func main() {
 	w := worker.New(c, getEnv("TEMPORAL_MONEYTRANSFER_TASKQUEUE", "MoneyTransfer"), worker.Options{})
 
 	// workflows
-	w.RegisterWorkflowWithOptions(workflows.MoneyTransferWorkflow, workflow.RegisterOptions{
+	w.RegisterWorkflowWithOptions(workflows.AccountTransferWorkflow, workflow.RegisterOptions{
 		Name: "AccountTransferWorkflow",
 	})
-	w.RegisterWorkflowWithOptions(workflows.MoneyTransferWorkflowScenarios, workflow.RegisterOptions{
+	w.RegisterWorkflowWithOptions(workflows.AccountTransferWorkflowScenarios, workflow.RegisterOptions{
 		Name: "AccountTransferWorkflowAdvancedVisibility",
 	})
-	w.RegisterWorkflowWithOptions(workflows.MoneyTransferWorkflowScenarios, workflow.RegisterOptions{
+	w.RegisterWorkflowWithOptions(workflows.AccountTransferWorkflowScenarios, workflow.RegisterOptions{
 		Name: "AccountTransferWorkflowHumanInLoop",
 	})
-	w.RegisterWorkflowWithOptions(workflows.MoneyTransferWorkflowScenarios, workflow.RegisterOptions{
+	w.RegisterWorkflowWithOptions(workflows.AccountTransferWorkflowScenarios, workflow.RegisterOptions{
 		Name: "AccountTransferWorkflowAPIDowntime",
 	})
-	w.RegisterWorkflowWithOptions(workflows.MoneyTransferWorkflowScenarios, workflow.RegisterOptions{
+	w.RegisterWorkflowWithOptions(workflows.AccountTransferWorkflowScenarios, workflow.RegisterOptions{
 		Name: "AccountTransferWorkflowRecoverableFailure",
 	})
-	w.RegisterWorkflowWithOptions(workflows.MoneyTransferWorkflowScenarios, workflow.RegisterOptions{
+	w.RegisterWorkflowWithOptions(workflows.AccountTransferWorkflowScenarios, workflow.RegisterOptions{
 		Name: "AccountTransferWorkflowInvalidAccount",
 	})
 
 	// activities
+	w.RegisterActivity(activities.Validate)
 	w.RegisterActivity(activities.Deposit)
 	w.RegisterActivity(activities.Withdraw)
 	w.RegisterActivity(activities.UndoWithdraw)
-
-	/*
-		w.RegisterWorkflowWithOptions(workflows.OrderWorkflow, workflow.RegisterOptions{
-			Name: "OrderWorkflowHappyPath",
-		})
-		w.RegisterWorkflowWithOptions(workflows.OrderWorkflowScenarios, workflow.RegisterOptions{
-			Name: "OrderWorkflowAPIFailure",
-		})
-		w.RegisterWorkflowWithOptions(workflows.OrderWorkflowScenarios, workflow.RegisterOptions{
-			Name: "OrderWorkflowRecoverableFailure",
-		})
-		w.RegisterWorkflowWithOptions(workflows.OrderWorkflowScenarios, workflow.RegisterOptions{
-			Name: "OrderWorkflowNonRecoverableFailure",
-		})
-		w.RegisterWorkflowWithOptions(workflows.OrderWorkflowScenarios, workflow.RegisterOptions{
-			Name: "OrderWorkflowChildWorkflow",
-		})
-		w.RegisterWorkflow(workflows.ShippingChildWorkflow)
-		w.RegisterWorkflowWithOptions(workflows.OrderWorkflowScenarios, workflow.RegisterOptions{
-			Name: "OrderWorkflowAdvancedVisibility",
-		})
-		w.RegisterWorkflowWithOptions(workflows.OrderWorkflowScenarios, workflow.RegisterOptions{
-			Name: "OrderWorkflowHumanInLoopSignal",
-		})
-		w.RegisterWorkflowWithOptions(workflows.OrderWorkflowScenarios, workflow.RegisterOptions{
-			Name: "OrderWorkflowHumanInLoopUpdate",
-		})
-
-		// activities
-		w.RegisterActivity(activities.GetItems)
-		w.RegisterActivity(activities.CheckFraud)
-		w.RegisterActivity(activities.PrepareShipment)
-		w.RegisterActivity(activities.UndoPrepareShipment)
-		w.RegisterActivity(activities.ChargeCustomer)
-		w.RegisterActivity(activities.UndoChargeCustomer)
-		w.RegisterActivity(activities.ShipOrder)
-	*/
+	w.RegisterActivity(activities.SendNotification)
 
 	err = w.Run(worker.InterruptCh())
 	if err != nil {
