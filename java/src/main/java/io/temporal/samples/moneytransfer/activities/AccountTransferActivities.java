@@ -34,5 +34,5 @@ public interface AccountTransferActivities {
     String sendNotification(TransferInput input);
 
     @ActivityMethod
-    boolean undoWithdraw(float amountDollars);
+    boolean undoWithdraw(float amount);
 }
