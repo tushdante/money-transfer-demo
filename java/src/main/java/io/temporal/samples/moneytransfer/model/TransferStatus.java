@@ -13,7 +13,9 @@ public class TransferStatus {
     private int progressPercentage;
     private String transferState;
     private String workflowStatus;
+
     @JsonProperty("chargeResult")
     private DepositResponse depositResponse;
+
     private int approvalTime;
 }

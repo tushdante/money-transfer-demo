@@ -46,7 +46,7 @@ public class AccountTransferWorkflowScenarios implements DynamicWorkflow {
         String idempotencyKey = Workflow.randomUUID().toString();
 
         // Validate
-        upsertStep("Validate", type);
+        upsertStep("Validate");
         activities.validate(input);
         updateProgress(25, 1);
 
@@ -57,11 +57,11 @@ public class AccountTransferWorkflowScenarios implements DynamicWorkflow {
             );
             updateProgress(30, 0, "waiting");
 
-            // Wait for the approval signal for up to approvalTime
-            boolean receivedSignal = Workflow.await(Duration.ofSeconds(approvalTime), () -> approved);
+            // Wait for the approval for up to approvalTime
+            boolean receivedApproval = Workflow.await(Duration.ofSeconds(approvalTime), () -> approved);
 
-            // If the signal was not received within the timeout, fail the workflow
-            if (!receivedSignal) {
+            // If the approval was not received within the timeout, fail the workflow
+            if (!receivedApproval) {
                 log.error(
                         "Approval not received within the {}-second time window: Failing the workflow.",
                         approvalTime
@@ -74,7 +74,7 @@ public class AccountTransferWorkflowScenarios implements DynamicWorkflow {
         }
 
         // Withdraw
-        upsertStep("Withdraw", type);
+        upsertStep("Withdraw");
         activities.withdraw(idempotencyKey, input.getAmount(), type);
         updateProgress(50, 3);
 
@@ -84,7 +84,7 @@ public class AccountTransferWorkflowScenarios implements DynamicWorkflow {
         }
 
         // Deposit
-        upsertStep("Deposit", type);
+        upsertStep("Deposit");
         try {
             depositResponse = activities.deposit(idempotencyKey, input.getAmount(), type);
             updateProgress(75, 1);
@@ -92,7 +92,7 @@ public class AccountTransferWorkflowScenarios implements DynamicWorkflow {
             // if deposit fails in an unrecoverable way, rollback the withdrawal and fail the workflow
             log.info("Deposit failed unrecoverable error, reverting withdraw");
 
-            // undoWithdraw activity (rollback)
+            // Undo Withdraw (rollback)
             activities.undoWithdraw(input.getAmount());
 
             // return failure message
@@ -101,15 +101,15 @@ public class AccountTransferWorkflowScenarios implements DynamicWorkflow {
         }
 
         // Send Notification
-        upsertStep("Send Notification", type);
+        upsertStep("Send Notification");
         activities.sendNotification(input);
         updateProgress(100, 1, "finished");
 
         return new TransferOutput(depositResponse);
     }
 
-    private void upsertStep(String step, String type) {
-        if (ADVANCED_VISIBILITY.equals(type)) {
+    private void upsertStep(String step) {
+        if (ADVANCED_VISIBILITY.equals(Workflow.getInfo().getWorkflowType())) {
             log.info("Advanced visibility .. {}", step);
             Workflow.upsertTypedSearchAttributes(WORKFLOW_STEP.valueSet(step));
         }

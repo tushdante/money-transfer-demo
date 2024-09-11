@@ -11,24 +11,23 @@ import io.temporal.samples.moneytransfer.util.ServerInfo;
 import io.temporal.serviceclient.SimpleSslContextBuilder;
 import io.temporal.serviceclient.WorkflowServiceStubs;
 import io.temporal.serviceclient.WorkflowServiceStubsOptions;
-
-import javax.net.ssl.SSLException;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.InputStream;
 import java.util.Collections;
+import javax.net.ssl.SSLException;
 
 public class TemporalClient {
 
     public static WorkflowServiceStubs getWorkflowServiceStubs() throws FileNotFoundException, SSLException {
         WorkflowServiceStubsOptions.Builder workflowServiceStubsOptionsBuilder =
-                WorkflowServiceStubsOptions.newBuilder();
+            WorkflowServiceStubsOptions.newBuilder();
 
         if (!ServerInfo.getCertPath().equals("") && !"".equals(ServerInfo.getKeyPath())) {
             InputStream clientCert = new FileInputStream(ServerInfo.getCertPath());
             InputStream clientKey = new FileInputStream(ServerInfo.getKeyPath());
             workflowServiceStubsOptionsBuilder.setSslContext(
-                    SimpleSslContextBuilder.forPKCS8(clientCert, clientKey).build()
+                SimpleSslContextBuilder.forPKCS8(clientCert, clientKey).build()
             );
         }
 
@@ -53,11 +52,11 @@ public class TemporalClient {
         // if environment variable ENCRYPT_PAYLOADS is set to true, then use CryptCodec
         if (System.getenv("ENCRYPT_PAYLOADS") != null && System.getenv("ENCRYPT_PAYLOADS").equals("true")) {
             builder.setDataConverter(
-                    new CodecDataConverter(
-                            DefaultDataConverter.newDefaultInstance(),
-                            Collections.singletonList(new CryptCodec()),
-                            true/* encode failure attributes */
-                    )
+                new CodecDataConverter(
+                    DefaultDataConverter.newDefaultInstance(),
+                    Collections.singletonList(new CryptCodec()),
+                    true/* encode failure attributes */
+                )
             );
         }
 
@@ -76,11 +75,11 @@ public class TemporalClient {
         // if environment variable ENCRYPT_PAYLOADS is set to true, then use CryptCodec
         if (System.getenv("ENCRYPT_PAYLOADS") != null && System.getenv("ENCRYPT_PAYLOADS").equals("true")) {
             builder.setDataConverter(
-                    new CodecDataConverter(
-                            DefaultDataConverter.newDefaultInstance(),
-                            Collections.singletonList(new CryptCodec()),
-                            true/* encode failure attributes */
-                    )
+                new CodecDataConverter(
+                    DefaultDataConverter.newDefaultInstance(),
+                    Collections.singletonList(new CryptCodec()),
+                    true/* encode failure attributes */
+                )
             );
         }
 

@@ -6,18 +6,17 @@ import io.temporal.common.converter.DataConverterException;
 import io.temporal.common.converter.EncodingKeys;
 import io.temporal.payload.codec.PayloadCodec;
 import io.temporal.payload.codec.PayloadCodecException;
-import org.jetbrains.annotations.NotNull;
-
-import javax.crypto.Cipher;
-import javax.crypto.SecretKey;
-import javax.crypto.spec.GCMParameterSpec;
-import javax.crypto.spec.SecretKeySpec;
 import java.nio.ByteBuffer;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.security.SecureRandom;
 import java.util.List;
 import java.util.stream.Collectors;
+import javax.crypto.Cipher;
+import javax.crypto.SecretKey;
+import javax.crypto.spec.GCMParameterSpec;
+import javax.crypto.spec.SecretKeySpec;
+import org.jetbrains.annotations.NotNull;
 
 public class CryptCodec implements PayloadCodec {
 
@@ -60,11 +59,11 @@ public class CryptCodec implements PayloadCodec {
         }
 
         return Payload.newBuilder()
-                .putMetadata(EncodingKeys.METADATA_ENCODING_KEY, METADATA_ENCODING)
-                .putMetadata(METADATA_ENCRYPTION_CIPHER_KEY, METADATA_ENCRYPTION_CIPHER)
-                .putMetadata(METADATA_ENCRYPTION_KEY_ID_KEY, ByteString.copyFromUtf8(keyId))
-                .setData(ByteString.copyFrom(encryptedData))
-                .build();
+            .putMetadata(EncodingKeys.METADATA_ENCODING_KEY, METADATA_ENCODING)
+            .putMetadata(METADATA_ENCRYPTION_CIPHER_KEY, METADATA_ENCRYPTION_CIPHER)
+            .putMetadata(METADATA_ENCRYPTION_KEY_ID_KEY, ByteString.copyFromUtf8(keyId))
+            .setData(ByteString.copyFrom(encryptedData))
+            .build();
     }
 
     private Payload decodePayload(Payload payload) {
