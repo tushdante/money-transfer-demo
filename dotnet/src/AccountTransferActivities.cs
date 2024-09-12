@@ -1,73 +1,115 @@
 using System.Diagnostics;
 using Microsoft.Extensions.Logging;
 using Temporalio.Activities;
+using Temporalio.Exceptions;
+using Temporalio.Workflows;
 
 namespace MoneyTransfer;
 
-public record EchoInput(String val);
-public record EchoOutput(String result);
-
 public class AccountTransferActivities
-{     
-    [Activity]
-    public async Task<string> WithdrawAsync(float amountDollars, bool simulateDelay) 
+{
+    public static readonly ActivityOptions options = new()
     {
-        ActivityExecutionContext.Current.Logger.LogInformation(
-            $"\nAPI /withdraw amount = {amountDollars}");
-
-        if (simulateDelay)
+        StartToCloseTimeout = TimeSpan.FromSeconds(5),
+        RetryPolicy = new()
         {
-            var info = ActivityExecutionContext.Current.Info;
-            ActivityExecutionContext.Current.Logger.LogInformation(
-                "\n**** Simulating API Downtime\n");
-            if (info.Attempt < 5)
-            {
-                ActivityExecutionContext.Current.Logger.LogInformation(
-                    "\n*** Activity Attempt: # " + info.Attempt + "***\n");
-                var delaySeconds = 7;
-                ActivityExecutionContext.Current.Logger.LogInformation(
-                    "\n/API/simulateDelay Seconds" + delaySeconds + "\n");
-                var response = await SimulateDelay(delaySeconds);
-            }
+            InitialInterval = TimeSpan.FromSeconds(1),
+            MaximumInterval = TimeSpan.FromSeconds(30),
+            BackoffCoefficient = 2
         }
-        
+    };
+
+    private static readonly String API_DOWNTIME = "AccountTransferWorkflowAPIDowntime";
+    private static readonly String INVALID_ACCOUNT = "AccountTransferWorkflowInvalidAccount";
+
+    [Activity]
+    public async Task<string> ValidateAsync(TransferInput input)
+    {
+        var logger = ActivityExecutionContext.Current.Logger;
+        logger.LogInformation("Validate activity started, input = {}", input);
+
+        // simulate external API call
+        _ = await SimulateExternalOperationAsync(1000);
+
         return "SUCCESS";
-    }    
-
-    [Activity]
-    public ChargeResponse Deposit(String idempotencyKey, float amountDollars, bool invalidAccount)  
-    {
-        ActivityExecutionContext.Current.Logger.LogInformation($"\nAPI /deposit amount = {amountDollars}");
-
-        if (invalidAccount)
-        {
-            throw new InvalidAccountException("Invalid Account");
-        }
-
-        return new ChargeResponse("example-charge-id");
     }
 
-    [Activity]    
-    public bool UndoWithdraw(float amountDollars)
+
+    [Activity]
+    public async Task<string> WithdrawAsync(string idempotencyKey, float amount, string type)
     {
-        ActivityExecutionContext.Current.Logger.LogInformation(
-            $"\nAPI /undoWithdraw amount = {amountDollars}");
+        var logger = ActivityExecutionContext.Current.Logger;
+        logger.LogInformation("Withdraw activity started, amount = {}", amount);
+        int attempt = ActivityExecutionContext.Current.Info.Attempt;
+
+        // simulate external API call
+        string error = await SimulateExternalOperationAsync(1000, type, attempt);
+        logger.LogInformation("Withdraw call complete, type = {}, error = {}", type, error);
+
+        if (API_DOWNTIME == error)
+        {
+            // a transient error, which can be retried
+            logger.LogInformation("Withdraw API unavailable, attempt = {}", attempt);
+            throw new Exception("Withdraw activity failed, API unavailable");
+        }
+
+        return "SUCCESS";
+    }
+
+    [Activity]
+    public async Task<DepositResponse> DepositAsync(String idempotencyKey, float amount, string type)
+    {
+        var logger = ActivityExecutionContext.Current.Logger;
+        logger.LogInformation("Deposit activity started, amount = {}", amount);
+        int attempt = ActivityExecutionContext.Current.Info.Attempt;
+
+        // simulate external API call
+        string error = await SimulateExternalOperationAsync(1000, type, attempt);
+        logger.LogInformation("Deposit call complete, type = {}, error = {}", type, error);
+
+        if (INVALID_ACCOUNT == error)
+        {
+            // a business error, which cannot be retried
+            throw new ApplicationFailureException("Deposit activity failed, account is invalid", nonRetryable: true);
+        }
+
+        return new DepositResponse("example-transfer-id");
+    }
+
+    [Activity]
+    public async Task<string> SendNotificationAsync(TransferInput input)
+    {
+        var logger = ActivityExecutionContext.Current.Logger;
+        logger.LogInformation("Send notification activity started, input = {}", input);
+
+        // simulate external API call
+        _ = await SimulateExternalOperationAsync(1000);
+
+        return "SUCCESS";
+    }
+
+
+    [Activity]
+    public async Task<bool> UndoWithdrawAsync(float amount)
+    {
+        var logger = ActivityExecutionContext.Current.Logger;
+        logger.LogInformation("Undo withdraw activity started, amount = {}", amount);
+
+        // simulate external API call
+        _ = await SimulateExternalOperationAsync(1000);
 
         return true;
     }
 
-    private static async Task<string> SimulateDelay(int seconds) 
-    {        
-        var url = ServerInfo.WebServerURL;
-        var urlPath ="/simulateDelay?s=" + seconds;
-        ActivityExecutionContext.Current.Logger.LogInformation(            
-            $"\n/API/simulateDelay URL: {url} path: {urlPath}");
+    private static async Task<string> SimulateExternalOperationAsync(int ms)
+    {
+        await Task.Delay(ms);
+        return "SUCCESS";
+    }
 
-        using var httpClient = new HttpClient()
-        {
-            BaseAddress = new Uri(url),
-        };
-        var response = await httpClient.GetStringAsync(urlPath);
-        return response;
-    } 
+    private static async Task<string> SimulateExternalOperationAsync(int ms, String type, int attempt)
+    {
+        _ = await SimulateExternalOperationAsync(ms / attempt);
+        return (attempt < 5) ? type : "NoError";
+    }
 }

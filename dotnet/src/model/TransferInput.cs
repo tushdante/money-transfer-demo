@@ -2,12 +2,12 @@ using System.Text.Json.Serialization;
 
 namespace MoneyTransfer;
 
-public record TransferInput
+public class TransferInput(int amount, string fromAccount, string toAccount)
 {
     [JsonPropertyName("amount")]
-    public required int Amount { get; init; }
+    public int Amount { get; set; } = amount;
     [JsonPropertyName("fromAccount")]
-    public required string FromAccount { get; init;}
+    public string FromAccount { get; set; } = fromAccount;
     [JsonPropertyName("toAccount")]
-    public required string ToAccount { get; init; }
+    public string ToAccount { get; set; } = toAccount;
 }

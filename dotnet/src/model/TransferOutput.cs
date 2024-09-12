@@ -2,15 +2,13 @@ using System.Text.Json.Serialization;
 
 namespace MoneyTransfer;
 
-public record TransferOutput
+public class TransferOutput(DepositResponse response)
 {
-     [JsonPropertyName("chargeResponse")]
-    public ChargeResponse ChargeResponse { get; init; }
+    [JsonPropertyName("depositResponse")]
+    public DepositResponse DepositResponse { get; set; } = response;
 
-    public TransferOutput(ChargeResponse response) => ChargeResponse = response;
-
-    public TransferOutput() 
-    {
-        ChargeResponse = new ChargeResponse("");
-    }
+    // public TransferOutput()
+    // {
+    //     DepositResponse = new DepositResponse();
+    // }
 }

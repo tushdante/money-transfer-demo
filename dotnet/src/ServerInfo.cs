@@ -1,19 +1,20 @@
 namespace MoneyTransfer;
+
 public static class ServerInfo
 {
-    private static String getEnvVarWithDefault(String envName, String defaultValue) 
+    private static String getEnvVarWithDefault(String envName, String defaultValue)
     {
         String? value = Environment.GetEnvironmentVariable(envName);
-        if (String.IsNullOrEmpty(value)) 
+        if (String.IsNullOrEmpty(value))
         {
             return defaultValue;
         }
-        return value; 
+        return value;
     }
 
     public static string WebServerURL
     {
-        get 
+        get
         {
             return getEnvVarWithDefault("TEMPORAL_JAVA_WEB_SERVER_URL", "http://localhost:7070");
         }
@@ -21,9 +22,9 @@ public static class ServerInfo
 
     public static string taskQueue
     {
-        get 
+        get
         {
-            return getEnvVarWithDefault("TEMPORAL_MONEYTRANSFER_TASKQUEUE", "MoneyTransferJava");
+            return getEnvVarWithDefault("TEMPORAL_MONEYTRANSFER_TASKQUEUE", "MoneyTransfer");
         }
     }
 
@@ -31,7 +32,7 @@ public static class ServerInfo
     {
         get
         {
-            return Int32.Parse(getEnvVarWithDefault("TEMPORAL_MONEYTRANSFER_SLEEP","5"));
+            return Int32.Parse(getEnvVarWithDefault("TEMPORAL_MONEYTRANSFER_SLEEP", "5"));
         }
     }
 }

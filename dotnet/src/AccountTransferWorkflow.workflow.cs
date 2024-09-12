@@ -1,5 +1,4 @@
 using Microsoft.Extensions.Logging;
-using Temporalio.Exceptions;
 using Temporalio.Workflows;
 
 namespace MoneyTransfer;
@@ -7,78 +6,57 @@ namespace MoneyTransfer;
 [Workflow]
 public class AccountTransferWorkflow
 {
-    ActivityOptions options = new () 
-    {
-        StartToCloseTimeout = TimeSpan.FromSeconds(5),
-        RetryPolicy = new() {
-            NonRetryableErrorTypes = [ nameof(InvalidAccountException), ],
-        }
-    };
+    private int progress = 0;
+    private string transferState = "starting";
+    private DepositResponse depositResponse = new(string.Empty);
 
     [WorkflowRun]
     public async Task<TransferOutput> Transfer(TransferInput input)
     {
-        Workflow.Logger.LogInformation($"Running normal Transfer workflow fromAccount: {input.FromAccount}, toAccount: {input.ToAccount}, amount: {input.Amount}");
+        var logger = Workflow.Logger;
+        var type = Workflow.Info.WorkflowType;
+        logger.LogInformation("Account Transfer workflow started, type = {}", type);
+        var idempotencyKey = Workflow.Random.Next().ToString();
 
-        transferState = "starting";
-        progressPercentage = 25;
+        // Validate
+        await Workflow.ExecuteActivityAsync((AccountTransferActivities act) =>
+            act.ValidateAsync(input), AccountTransferActivities.options);
+        await UpdateProgressAsync(25, 1);
 
-        await Workflow.DelayAsync(TimeSpan.FromSeconds(ServerInfo.WorkflowSleepDuration));
+        // Withdraw
+        await Workflow.ExecuteActivityAsync((AccountTransferActivities act) =>
+            act.WithdrawAsync(idempotencyKey, input.Amount, type), AccountTransferActivities.options);
+        await UpdateProgressAsync(50, 3);
 
-        progressPercentage = 50;
-        transferState = "running";
+        // Deposit
+        depositResponse = await Workflow.ExecuteActivityAsync((AccountTransferActivities act) =>
+            act.DepositAsync(idempotencyKey, input.Amount, type), AccountTransferActivities.options);
+        await UpdateProgressAsync(75, 1);
 
-                // These variables are reflected in the UI
-        progressPercentage = 60;
-        transferState = "running";
+        // Send Notification
+        await Workflow.ExecuteActivityAsync((AccountTransferActivities act) =>
+            act.SendNotificationAsync(input), AccountTransferActivities.options);
+        await UpdateProgressAsync(100, 1, "finished");
 
-       // Withdraw activity
-        await Workflow.ExecuteActivityAsync((AccountTransferActivities act) => act.WithdrawAsync(input.Amount, false), options);
-
-        // Pause for dramatic effect
-        await Workflow.DelayAsync(TimeSpan.FromSeconds(2));
-
-        try 
-        {
-            var idempotencyKey = Workflow.Random.Next().ToString();
-            chargeResult = await Workflow.ExecuteActivityAsync(
-                (AccountTransferActivities act) => 
-                    act.Deposit(idempotencyKey, input.Amount, false), options);
-        }
-        catch (ActivityFailureException exception)
-        {
-            Workflow.Logger.LogInformation("\n\nDeposit failed unrecoverably, reverting withdraw\n\n");
-            // Undo activity (rollback)
-            await Workflow.ExecuteActivityAsync(
-                (AccountTransferActivities act) => 
-                    act.UndoWithdraw(input.Amount), options);
-
-            // Return failure message
-            throw new ApplicationFailureException(exception.Message);
-        }
-
-        // These variables are reflected in the UI
-        progressPercentage = 80;
-        await Workflow.DelayAsync(TimeSpan.FromSeconds(6));
-        progressPercentage = 100;
-        transferState = "finished";
-
-        return new TransferOutput(chargeResult);
+        return new TransferOutput(depositResponse);
     }
-    
+
     [WorkflowQuery("transferStatus")]
-    public TransferStatus TransferStatus
+    public TransferStatus QueryTransferStatus()
     {
-        get
-        {
-            return new TransferStatus(approvalTime, progressPercentage, transferState, string.Empty, chargeResult);
-        }
+        return new TransferStatus(progress, transferState, string.Empty, depositResponse, 0);
     }
 
-    // These variables are reflected in the UI
-    private int progressPercentage = 10;
-    private string transferState = "starting";
-    // Time to allow for transfer approval
-    private int approvalTime = 30;
-    private ChargeResponse chargeResult = new(string.Empty);
+    private async Task UpdateProgressAsync(int progress, int sleep) {
+        await UpdateProgressAsync(progress, sleep, "running");
+    }
+
+    private async Task UpdateProgressAsync(int progress, int sleep, string transferState) {
+        if (sleep > 0) {
+            await Workflow.DelayAsync(TimeSpan.FromSeconds(sleep));
+        }
+        this.transferState = transferState;
+        this.progress = progress;
+    }
+
 }

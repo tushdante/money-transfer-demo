@@ -9,140 +9,124 @@ namespace MoneyTransfer;
 [Workflow(Dynamic = true)]
 public class AccountTransferWorkflowScenarios
 {
+    private static readonly string BUG = "AccountTransferWorkflowRecoverableFailure";
+    private static readonly string NEEDS_APPROVAL = "AccountTransferWorkflowHumanInLoop";
+    private static readonly string ADVANCED_VISIBILITY = "AccountTransferWorkflowAdvancedVisibility";
+
+    private SearchAttributeKey<string> stepAttributKey = SearchAttributeKey.CreateKeyword("Step");
+
+    private int progress = 0;
+    private string transferState = "starting";
+    private DepositResponse depositResponse = new(string.Empty);
+
+    private int approvalTime = 30;
+    private bool approved = false;
+
+
     [WorkflowRun]
     public async Task<TransferOutput> RunAsync(IRawValue[] args)
     {
-        String type = Workflow.Info.WorkflowType;
+        var logger = Workflow.Logger;
+        var type = Workflow.Info.WorkflowType;
         var input = Workflow.PayloadConverter.ToValue<TransferInput>(args[0]);
-        Workflow.Logger.LogInformation(
-            string.Join("", "Dynamic Account Transfer workflow started, ",
-                $"type: {type}. From: {input.FromAccount} To: ",
-                $"{input.ToAccount} Amount: {input.Amount}"));
+        logger.LogInformation("Dynamic Account Transfer workflow started, type = {}", type);
+        var idempotencyKey = Workflow.Random.Next().ToString();
 
-       transferState = "starting";
-        progressPercentage = 25;
+        // Validate
+        UpsertStep("Validate");
+        await Workflow.ExecuteActivityAsync((AccountTransferActivities act) =>
+            act.ValidateAsync(input), AccountTransferActivities.options);
+        await UpdateProgressAsync(25, 1);
 
-        await Workflow.DelayAsync(TimeSpan.FromSeconds(ServerInfo.WorkflowSleepDuration));
-
-        progressPercentage = 50;
-        transferState = "running";
-
-        if (NEEDS_APPROVAL.Equals(type))
+        if (NEEDS_APPROVAL == type)
         {
-            Workflow.Logger.LogInformation(
-                "\n\nWaiting on 'approveTransfer' Signal or Update for workflow ID: " +
-                Workflow.Info.WorkflowId + "\n\n");
-            
-            transferState = "waiting";
-            var received = await Workflow.WaitConditionAsync(() => approved, TimeSpan.FromSeconds(approvalTime));
-            if (!received)
-            {
-                Workflow.Logger.LogInformation(
-                    "Approval not received within the " + 
-                    approvalTime + 
-                    " -second time window: Failing the workflow.");
+            logger.LogInformation("Waiting on 'approveTransfer' Signal or Update for workflow ID: {}", Workflow.Info.WorkflowId);
+            await UpdateProgressAsync(30, 0, "waiting");
 
-                throw new ApplicationFailureException("Approval not recieved wihin " + approvalTime + " seconds");
+            var receivedApproval = await Workflow.WaitConditionAsync(() => approved, TimeSpan.FromSeconds(approvalTime));
+            if (!receivedApproval)
+            {
+
+                logger.LogInformation("Approval not received within the {}-second time window: Failing the workflow.", approvalTime);
+                throw new ApplicationFailureException("Approval not received within " + approvalTime + " seconds");
             }
         }
 
-        // These variables are reflected in the UI
-        progressPercentage = 60;
-        transferState = "running";
+        // Withdraw
+        UpsertStep("Withdraw");
+        await Workflow.ExecuteActivityAsync((AccountTransferActivities act) =>
+            act.WithdrawAsync(idempotencyKey, input.Amount, type), AccountTransferActivities.options);
+        await UpdateProgressAsync(50, 3);
 
-        if (ADVANCED_VISIBILITY.Equals(type))
+        if (BUG == type)
         {
-            Workflow.UpsertTypedSearchAttributes(stepAttributKey.ValueSet("Withdraw"));
-            // Pause for dramatic effect
-            await Workflow.DelayAsync(TimeSpan.FromSeconds(5));            
+            // Simulate bug
+            throw new Exception("Simulate bug - fix me!");
         }
 
-        // Withdraw activity
-        var simulateDelay = API_DOWNTIME.Equals(type);
-        await Workflow.ExecuteActivityAsync((AccountTransferActivities act) => act.WithdrawAsync(input.Amount, simulateDelay), options);
-
-        // Pause for dramatic effect
-        await Workflow.DelayAsync(TimeSpan.FromSeconds(2));
-
-        // Simulate bug in workflow
-        if (BUG.Equals(type))
+        // Deposit
+        UpsertStep("Deposit");
+        try
         {
-            // Throw an error to simulate a bug in the workflow
-            // uncomment the following line and restart workers to fix the bug
-            Workflow.Logger.LogInformation("\nSimulating workflow task failure.\n");
-            throw new InvalidOperationException("Simulating workflow bug!");
+            depositResponse = await Workflow.ExecuteActivityAsync((AccountTransferActivities act) =>
+                    act.DepositAsync(idempotencyKey, input.Amount, type), AccountTransferActivities.options);
+            await UpdateProgressAsync(75, 1);
+        }
+        catch (ActivityFailureException e)
+        {
+            // if deposit fails in an unrecoverable way, rollback the withdrawal and fail the workflow
+            logger.LogInformation("Deposit failed unrecoverable error, reverting withdraw");
+
+            // Undo Withdraw (rollback)
+            await Workflow.ExecuteActivityAsync((AccountTransferActivities act) =>
+                act.UndoWithdrawAsync(input.Amount), AccountTransferActivities.options);
+
+            // return failure message
+            throw new ApplicationFailureException(e.Message);
         }
 
-        if (ADVANCED_VISIBILITY.Equals(type))
-        {
-            Workflow.UpsertTypedSearchAttributes(stepAttributKey.ValueSet("Deposit")); 
-        }
+        // Send Notification
+        UpsertStep("Send Notification");
+        await Workflow.ExecuteActivityAsync((AccountTransferActivities act) =>
+            act.SendNotificationAsync(input), AccountTransferActivities.options);
+        await UpdateProgressAsync(100, 1, "finished");
 
-        try 
-        {
-            var idempotencyKey = Workflow.Random.Next().ToString();
-            var invalidAccount = INVALID_ACCOUNT.Equals(type);
-            chargeResult = await Workflow.ExecuteActivityAsync(
-                (AccountTransferActivities act) => 
-                    act.Deposit(idempotencyKey, input.Amount, invalidAccount), options);
-        }
-        catch (ActivityFailureException exception)
-        {
-            Workflow.Logger.LogInformation("\n\nDeposit failed unrecoverably, reverting withdraw\n\n");
-            // Undo activity (rollback)
-            await Workflow.ExecuteActivityAsync(
-                (AccountTransferActivities act) => 
-                    act.UndoWithdraw(input.Amount), options);
+        return new TransferOutput(depositResponse);
+    }
 
-            // Return failure message
-            throw new ApplicationFailureException(exception.Message);
-        }
-
-        // These variables are reflected in the UI
-        progressPercentage = 80;
-        await Workflow.DelayAsync(TimeSpan.FromSeconds(6));
-        progressPercentage = 100;
-        transferState = "finished";            
-        
-        return new TransferOutput(chargeResult);
+    [WorkflowQuery("transferStatus")]
+    public TransferStatus QueryTransferStatus()
+    {
+        return new TransferStatus(progress, transferState, string.Empty, depositResponse, approvalTime);
     }
 
     [WorkflowSignal("approveTransfer")]
-    public async Task ApproveTransfer()
+    public async Task ApproveTransferSignal()
     {
-        Workflow.Logger.LogInformation("\nApprove Signal Received\n");
+        Workflow.Logger.LogInformation("Approve Signal Received");
         if (transferState == "waiting")
         {
             approved = true;
         }
         else
         {
-            Workflow.Logger.LogInformation($"\nSignal not applied: Transfer is not waiting for approval. {transferState}\n");
-        }
-    }
-    
-    [WorkflowQuery("transferStatus")]
-    public TransferStatus TransferStatus
-    {
-        get
-        {
-            return new TransferStatus(approvalTime, progressPercentage, transferState, string.Empty, chargeResult);
+            Workflow.Logger.LogInformation("Signal not applied: Transfer is not waiting for approval");
         }
     }
 
     [WorkflowUpdate("approveTransferUpdate")]
-    public Task<string> approveTransferUpdate()
+    public async Task<string> ApproveTransferUpdate()
     {
-        Workflow.Logger.LogInformation("\n\nApprove Update Validated: Approving Transfer\n\n");
+        Workflow.Logger.LogInformation("Approve Update Validated: Approving Transfer");
         approved = true;
-        return Task.FromResult("successfully approved transfer");
+        return "successfully approved transfer";
     }
 
-    [WorkflowUpdateValidator("approveTransferUpdate")]
-    public void approveTransferUpdateValidator() 
+    [WorkflowUpdateValidator("ApproveTransferUpdate")]
+    public void ApproveTransferUpdateValidator()
     {
-        Workflow.Logger.LogInformation("\n\nApprove Update Validated: Approving Transfer\n\n");
-        if (approved) 
+        Workflow.Logger.LogInformation("Approve Update Received: Validating");
+        if (approved)
         {
             throw new InvalidOperationException("Validation Failed: Transfer already approved");
         }
@@ -152,27 +136,23 @@ public class AccountTransferWorkflowScenarios
         }
     }
 
-    private static String BUG = "AccountTransferWorkflowRecoverableFailure";
-    private static String NEEDS_APPROVAL = "AccountTransferWorkflowHumanInLoop";
-    private static String ADVANCED_VISIBILITY = "AccountTransferWorkflowAdvancedVisibility";
-    private static String API_DOWNTIME = "AccountTransferWorkflowAPIDowntime";
-    private static String INVALID_ACCOUNT = "AccountTransferWorkflowInvalidAccount";
-
-    // These variables are reflected in the UI
-    private int progressPercentage = 10;
-    private string transferState = "starting";
-    // Time to allow for transfer approval
-    private int approvalTime = 30;
-    private bool approved = false;
-    private ChargeResponse chargeResult = new(string.Empty);
-
-    ActivityOptions options = new () 
-    {
-        StartToCloseTimeout = TimeSpan.FromSeconds(5),
-        RetryPolicy = new() {
-            NonRetryableErrorTypes = [ nameof(InvalidAccountException), ],
+    private void UpsertStep(string step) {
+        if (ADVANCED_VISIBILITY == Workflow.Info.WorkflowType) {
+            Workflow.Logger.LogInformation("Advanced visibility .. {}", step);
+            Workflow.UpsertTypedSearchAttributes(stepAttributKey.ValueSet(step));
         }
-    };
+    }
 
-    private readonly static SearchAttributeKey<string> stepAttributKey = SearchAttributeKey.CreateKeyword("Step");
+    private async Task UpdateProgressAsync(int progress, int sleep) {
+        await UpdateProgressAsync(progress, sleep, "running");
+    }
+
+    private async Task UpdateProgressAsync(int progress, int sleep, string transferState) {
+        if (sleep > 0) {
+            await Workflow.DelayAsync(TimeSpan.FromSeconds(sleep));
+        }
+        this.transferState = transferState;
+        this.progress = progress;
+    }
+
 }
