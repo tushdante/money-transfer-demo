@@ -23,7 +23,7 @@ public class AccountTransferWorkflowScenarios implements DynamicWorkflow {
 
     private static final Logger log = Workflow.getLogger(AccountTransferWorkflowScenarios.class);
 
-    private static final SearchAttributeKey<String> WORKFLOW_STEP = SearchAttributeKey.forKeyword("Step");
+    private final SearchAttributeKey<String> WORKFLOW_STEP = SearchAttributeKey.forKeyword("Step");
 
     private final AccountTransferActivities activities = Workflow.newActivityStub(
             AccountTransferActivities.class,

@@ -4,8 +4,9 @@ import io.temporal.activity.Activity;
 import io.temporal.failure.ApplicationFailure;
 import io.temporal.samples.moneytransfer.model.DepositResponse;
 import io.temporal.samples.moneytransfer.model.TransferInput;
-import java.util.concurrent.TimeUnit;
 import lombok.extern.slf4j.Slf4j;
+
+import java.util.concurrent.TimeUnit;
 
 @Slf4j
 public class AccountTransferActivitiesImpl implements AccountTransferActivities {
@@ -66,8 +67,8 @@ public class AccountTransferActivitiesImpl implements AccountTransferActivities 
         if (INVALID_ACCOUNT.equals(error)) {
             // a business error, which cannot be retried
             throw ApplicationFailure.newNonRetryableFailure(
-                "Deposit activity failed, account is invalid",
-                "InvalidAccount"
+                    "Deposit activity failed, account is invalid",
+                    "InvalidAccount"
             );
         }
 

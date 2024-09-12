@@ -6,16 +6,17 @@ import io.temporal.samples.moneytransfer.model.TransferInput;
 import io.temporal.samples.moneytransfer.model.TransferOutput;
 import io.temporal.samples.moneytransfer.model.TransferStatus;
 import io.temporal.workflow.Workflow;
-import java.time.Duration;
 import org.slf4j.Logger;
+
+import java.time.Duration;
 
 public class AccountTransferWorkflowImpl implements AccountTransferWorkflow {
 
     private static final Logger log = Workflow.getLogger(AccountTransferWorkflowImpl.class);
 
     private final AccountTransferActivities activities = Workflow.newActivityStub(
-        AccountTransferActivities.class,
-        AccountTransferActivities.activityOptions
+            AccountTransferActivities.class,
+            AccountTransferActivities.activityOptions
     );
 
     private int progress = 0;
