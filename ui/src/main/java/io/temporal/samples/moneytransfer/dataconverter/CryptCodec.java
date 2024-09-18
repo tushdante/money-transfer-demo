@@ -96,13 +96,14 @@ public class CryptCodec implements PayloadCodec {
         // Use a fixed key for all payloads.
         // This still supports key rotation as the key ID is recorded on payloads allowing
         // decryption to use a previous key.
-        return "sa-rocks!sa-rocks!sa-rocks!yeah!";
+        return "test";
     }
 
     private SecretKey getKey(String keyId) {
         // Key must be fetched from KMS or other secure storage.
         // Hard coded here only for example purposes.
-        return new SecretKeySpec(keyId.getBytes(UTF_8), "AES");
+        String key = "sa-rocks!sa-rocks!sa-rocks!yeah!";
+        return new SecretKeySpec(key.getBytes(UTF_8), "AES");
     }
 
     private byte[] encrypt(byte[] plainData, SecretKey key) throws Exception {
