@@ -12,14 +12,6 @@ public static class ServerInfo
         return value;
     }
 
-    public static string WebServerURL
-    {
-        get
-        {
-            return getEnvVarWithDefault("TEMPORAL_JAVA_WEB_SERVER_URL", "http://localhost:7070");
-        }
-    }
-
     public static string taskQueue
     {
         get
