@@ -11,9 +11,8 @@ import io.temporal.samples.moneytransfer.model.TransferOutput;
 import io.temporal.samples.moneytransfer.model.TransferStatus;
 import io.temporal.workflow.DynamicWorkflow;
 import io.temporal.workflow.Workflow;
-import org.slf4j.Logger;
-
 import java.time.Duration;
+import org.slf4j.Logger;
 
 public class AccountTransferWorkflowScenarios implements DynamicWorkflow {
 
@@ -26,8 +25,8 @@ public class AccountTransferWorkflowScenarios implements DynamicWorkflow {
     private final SearchAttributeKey<String> WORKFLOW_STEP = SearchAttributeKey.forKeyword("Step");
 
     private final AccountTransferActivities activities = Workflow.newActivityStub(
-            AccountTransferActivities.class,
-            AccountTransferActivities.activityOptions
+        AccountTransferActivities.class,
+        AccountTransferActivities.activityOptions
     );
 
     private int progress = 0;
@@ -52,8 +51,8 @@ public class AccountTransferWorkflowScenarios implements DynamicWorkflow {
 
         if (NEEDS_APPROVAL.equals(type)) {
             log.info(
-                    "Waiting on 'approveTransfer' Signal or Update for workflow ID: {}",
-                    Workflow.getInfo().getWorkflowId()
+                "Waiting on 'approveTransfer' Signal or Update for workflow ID: {}",
+                Workflow.getInfo().getWorkflowId()
             );
             updateProgress(30, 0, "waiting");
 
@@ -63,12 +62,12 @@ public class AccountTransferWorkflowScenarios implements DynamicWorkflow {
             // If the approval was not received within the timeout, fail the workflow
             if (!receivedApproval) {
                 log.error(
-                        "Approval not received within the {}-second time window: Failing the workflow.",
-                        approvalTime
+                    "Approval not received within the {}-second time window: Failing the workflow.",
+                    approvalTime
                 );
                 throw ApplicationFailure.newFailure(
-                        "Approval not received within " + approvalTime + " seconds",
-                        "ApprovalTimeout"
+                    "Approval not received within " + approvalTime + " seconds",
+                    "ApprovalTimeout"
                 );
             }
         }
