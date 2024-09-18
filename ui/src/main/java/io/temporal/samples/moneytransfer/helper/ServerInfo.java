@@ -28,11 +28,6 @@ public class ServerInfo {
         return taskqueue != null && !taskqueue.isEmpty() ? taskqueue : "MoneyTransfer";
     }
 
-    public static String getWebServerURL() {
-        String webServerURL = System.getenv("TEMPORAL_JAVA_WEB_SERVER_URL");
-        return webServerURL != null && !webServerURL.isEmpty() ? webServerURL : "http://localhost:7070";
-    }
-
     public static int getWorkflowSleepDuration() {
         String workflowSleepDurationString = System.getenv("TEMPORAL_MONEYTRANSFER_SLEEP");
         int workflowSleepDuration = 0;
