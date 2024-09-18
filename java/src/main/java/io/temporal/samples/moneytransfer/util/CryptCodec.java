@@ -6,18 +6,17 @@ import io.temporal.common.converter.DataConverterException;
 import io.temporal.common.converter.EncodingKeys;
 import io.temporal.payload.codec.PayloadCodec;
 import io.temporal.payload.codec.PayloadCodecException;
-import org.jetbrains.annotations.NotNull;
-
-import javax.crypto.Cipher;
-import javax.crypto.SecretKey;
-import javax.crypto.spec.GCMParameterSpec;
-import javax.crypto.spec.SecretKeySpec;
 import java.nio.ByteBuffer;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.security.SecureRandom;
 import java.util.List;
 import java.util.stream.Collectors;
+import javax.crypto.Cipher;
+import javax.crypto.SecretKey;
+import javax.crypto.spec.GCMParameterSpec;
+import javax.crypto.spec.SecretKeySpec;
+import org.jetbrains.annotations.NotNull;
 
 public class CryptCodec implements PayloadCodec {
 
@@ -60,11 +59,11 @@ public class CryptCodec implements PayloadCodec {
         }
 
         return Payload.newBuilder()
-                .putMetadata(EncodingKeys.METADATA_ENCODING_KEY, METADATA_ENCODING)
-                .putMetadata(METADATA_ENCRYPTION_CIPHER_KEY, METADATA_ENCRYPTION_CIPHER)
-                .putMetadata(METADATA_ENCRYPTION_KEY_ID_KEY, ByteString.copyFromUtf8(keyId))
-                .setData(ByteString.copyFrom(encryptedData))
-                .build();
+            .putMetadata(EncodingKeys.METADATA_ENCODING_KEY, METADATA_ENCODING)
+            .putMetadata(METADATA_ENCRYPTION_CIPHER_KEY, METADATA_ENCRYPTION_CIPHER)
+            .putMetadata(METADATA_ENCRYPTION_KEY_ID_KEY, ByteString.copyFromUtf8(keyId))
+            .setData(ByteString.copyFrom(encryptedData))
+            .build();
     }
 
     private Payload decodePayload(Payload payload) {
@@ -96,13 +95,14 @@ public class CryptCodec implements PayloadCodec {
         // Use a fixed key for all payloads.
         // This still supports key rotation as the key ID is recorded on payloads allowing
         // decryption to use a previous key.
-        return "sa-rocks!sa-rocks!sa-rocks!yeah!";
+        return "test";
     }
 
     private SecretKey getKey(String keyId) {
         // Key must be fetched from KMS or other secure storage.
         // Hard coded here only for example purposes.
-        return new SecretKeySpec(keyId.getBytes(UTF_8), "AES");
+        String key = "sa-rocks!sa-rocks!sa-rocks!yeah!";
+        return new SecretKeySpec(key.getBytes(UTF_8), "AES");
     }
 
     private byte[] encrypt(byte[] plainData, SecretKey key) throws Exception {

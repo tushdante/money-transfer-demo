@@ -5,10 +5,12 @@ import (
 	"log"
 	"log/slog"
 	"money-transfer-worker/activities"
+	"money-transfer-worker/encryption"
 	"money-transfer-worker/workflows"
 	"os"
 
 	"go.temporal.io/sdk/client"
+	"go.temporal.io/sdk/converter"
 	tlog "go.temporal.io/sdk/log"
 	"go.temporal.io/sdk/worker"
 	"go.temporal.io/sdk/workflow"
@@ -82,6 +84,14 @@ func getClientOptions() client.Options {
 				Certificates: []tls.Certificate{cert},
 			},
 		}
+	}
+
+	encryptPayloads := getEnv("ENCRYPT_PAYLOADS", "false")
+	if encryptPayloads == "true" {
+		clientOptions.DataConverter = encryption.NewEncryptionDataConverter(
+			converter.GetDefaultDataConverter(),
+			encryption.DataConverterOptions{KeyID: "test", Compress: false},
+		)
 	}
 
 	return clientOptions
