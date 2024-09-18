@@ -28,12 +28,7 @@ public class MoneyTransferTests
         await worker.ExecuteAsync(async () =>
         {
             var amountDollars = 1000;
-            var input = new TransferInput() 
-            {
-                Amount = amountDollars,
-                FromAccount = "account1",
-                ToAccount = "account2"
-            };
+            var input = new TransferInput(amountDollars, "account1", "account2"); 
             var handle = await client.StartWorkflowAsync(
                 (AccountTransferWorkflow wf) => wf.Transfer(input),
                 new(
@@ -41,9 +36,9 @@ public class MoneyTransferTests
                     taskQueue: taskQueue));
 
             // Wait for the workflow to complete
-            var result = await handle.GetResultAsync();
-            var expected = new TransferOutput(new ChargeResponse("example-charge-id"));
-            Assert.Equal(expected, result);
+            var result = await handle.GetResultAsync<TransferOutput>();
+            var expected = new TransferOutput(new DepositResponse("example-transfer-id"));
+            Assert.Equivalent(expected, result);
         });
     }
 
@@ -69,12 +64,7 @@ public class MoneyTransferTests
         await worker.ExecuteAsync(async () =>
         {
             var amountDollars = 1000;
-            var input = new TransferInput() 
-            {
-                Amount = amountDollars, 
-                FromAccount = "account1",
-                ToAccount = "account2"
-            };
+            var input = new TransferInput(amountDollars, "account1", "account2"); 
 
             var handle = await client.StartWorkflowAsync(
                 "AccountTransferWorkflowHumanInLoop",
@@ -92,8 +82,8 @@ public class MoneyTransferTests
 
             // Wait for the workflow to complete
             var result = await handle.GetResultAsync<TransferOutput>();
-            var expected = new TransferOutput(new ChargeResponse("example-charge-id"));
-            Assert.Equal(expected, result);
+            var expected = new TransferOutput(new DepositResponse("example-transfer-id"));
+            Assert.Equivalent(expected, result);
         });
     }
 
@@ -114,12 +104,7 @@ public class MoneyTransferTests
         await worker.ExecuteAsync(async () =>
         {
             var amountDollars = 1000;
-            var input = new TransferInput() 
-            {
-                Amount = amountDollars, 
-                FromAccount = "account1",
-                ToAccount = "account2",
-            };
+            var input = new TransferInput(amountDollars, "account1", "account2"); 
 
             var handle = await client.StartWorkflowAsync(
                 "AccountTransferWorkflowHumanInLoop",
