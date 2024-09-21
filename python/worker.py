@@ -47,7 +47,7 @@ async def main():
                     activities.sendNotification,
                     activities.undoWithdraw],
     )
-
+    print("Python money transfer worker starting...")
     await worker.run()
 
 if __name__ == "__main__":
