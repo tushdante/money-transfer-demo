@@ -14,5 +14,12 @@ pip install temporalio
 Be sure you set up your Python Virtual Environment before running the worker
 
 ```bash
-python worker.py
+./startlocalworker.sh
+```
+
+## Start Worker on Temporal Cloud
+If you haven't updated the setcloudenv.sh file, see the main [README](../README.md) for instructions
+
+```bash
+./startcloudworker.sh
 ```
