@@ -1,4 +1,4 @@
-import { ApplicationFailure, Context, log } from '@temporalio/activity';
+import { ApplicationFailure, Context, log, sleep } from '@temporalio/activity';
 import type { DepositResponse, TransferInput } from '../types';
 
 export const API_DOWNTIME = 'AccountTransferWorkflowAPIDowntime';
@@ -7,7 +7,7 @@ export const NO_ERROR = 'NoError';
 export const SUCCESS = 'SUCCESS';
 
 async function simulateExternalOperationAsync(ms: number): Promise<string> {
-  await new Promise((resolve) => setTimeout(resolve, ms));
+  await sleep(ms);
   return SUCCESS;
 }
 
