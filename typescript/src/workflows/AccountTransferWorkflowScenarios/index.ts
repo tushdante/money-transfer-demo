@@ -31,7 +31,7 @@ const { validateAsync, withdrawAsync, depositAsync, sendNotificationAsync, undoW
 
 const transferStatusQuery = defineQuery<TransferStatus>('transferStatus');
 const approveTransferSignal = defineSignal<[null]>('approveTransfer');
-const approveTransferUpdate = defineUpdate<string, null>('approveTransferUpdate');
+const approveTransferUpdate = defineUpdate<string, []>('approveTransferUpdate');
 
 export async function AccountTransferWorkflowScenarios(input: TransferInput): Promise<TransferOutput> {
   const { workflowType } = workflowInfo();
