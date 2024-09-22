@@ -60,6 +60,14 @@ cd dotnet
 ./startlocalworker.sh
 ```
 
+#### Python Worker
+In a new terminal, start the Python Worker
+
+```bash
+cd python
+./startlocalworker.sh
+```
+
 ## Running the Demo on Temporal Cloud
 Set up a search attribute in your namespace using the following command
 
@@ -113,5 +121,13 @@ In a new terminal, start the .NET Worker
 
 ```bash
 cd dotnet
+./startcloudworker.sh
+```
+
+#### Python Worker
+In a new terminal, start the Python Worker
+
+```bash
+cd python
 ./startcloudworker.sh
 ```

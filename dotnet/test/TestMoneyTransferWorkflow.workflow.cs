@@ -11,7 +11,7 @@ namespace MoneyTransferTests;
 
 public class MoneyTransferTests
 {
-    
+
     [Fact]
     public async Task RunAsync_MoneyTransfer_HappyPath()
     {
@@ -27,13 +27,7 @@ public class MoneyTransferTests
         using var worker = new TemporalWorker(client, workerOptions);
         await worker.ExecuteAsync(async () =>
         {
-            var amountDollars = 1000;
-            var input = new TransferInput() 
-            {
-                Amount = amountDollars,
-                FromAccount = "account1",
-                ToAccount = "account2"
-            };
+            var input = new TransferInput(1000, "account1", "account2");
             var handle = await client.StartWorkflowAsync(
                 (AccountTransferWorkflow wf) => wf.Transfer(input),
                 new(
@@ -41,9 +35,9 @@ public class MoneyTransferTests
                     taskQueue: taskQueue));
 
             // Wait for the workflow to complete
-            var result = await handle.GetResultAsync();
-            var expected = new TransferOutput(new ChargeResponse("example-charge-id"));
-            Assert.Equal(expected, result);
+            var result = await handle.GetResultAsync<TransferOutput>();
+            var expected = new TransferOutput(new DepositResponse("example-transfer-id"));
+            Assert.Equivalent(expected, result);
         });
     }
 
@@ -68,13 +62,7 @@ public class MoneyTransferTests
         using var worker = new TemporalWorker(client, workerOptions);
         await worker.ExecuteAsync(async () =>
         {
-            var amountDollars = 1000;
-            var input = new TransferInput() 
-            {
-                Amount = amountDollars, 
-                FromAccount = "account1",
-                ToAccount = "account2"
-            };
+            var input = new TransferInput(1000, "account1", "account2");
 
             var handle = await client.StartWorkflowAsync(
                 "AccountTransferWorkflowHumanInLoop",
@@ -82,7 +70,7 @@ public class MoneyTransferTests
                 new(
                     id: "HumanInLoopID",
                     taskQueue: taskQueue));
-            
+
             // Skip time so we're waiting for a signal
             Thread.Sleep(TimeSpan.FromSeconds(ServerInfo.WorkflowSleepDuration+1));
 
@@ -92,8 +80,8 @@ public class MoneyTransferTests
 
             // Wait for the workflow to complete
             var result = await handle.GetResultAsync<TransferOutput>();
-            var expected = new TransferOutput(new ChargeResponse("example-charge-id"));
-            Assert.Equal(expected, result);
+            var expected = new TransferOutput(new DepositResponse("example-transfer-id"));
+            Assert.Equivalent(expected, result);
         });
     }
 
@@ -113,13 +101,7 @@ public class MoneyTransferTests
         using var worker = new TemporalWorker(client, workerOptions);
         await worker.ExecuteAsync(async () =>
         {
-            var amountDollars = 1000;
-            var input = new TransferInput() 
-            {
-                Amount = amountDollars, 
-                FromAccount = "account1",
-                ToAccount = "account2",
-            };
+            var input = new TransferInput(1000, "account1", "account2");
 
             var handle = await client.StartWorkflowAsync(
                 "AccountTransferWorkflowHumanInLoop",
@@ -127,10 +109,10 @@ public class MoneyTransferTests
                 new(
                     id: "HumanInLoopID",
                     taskQueue: taskQueue));
-        
+
             // Wait for the workflow to complete
             // will fail because it wasn't approved
             await Assert.ThrowsAsync<WorkflowFailedException> (async () => await handle.GetResultAsync());
         });
-    } 
+    }
 }
