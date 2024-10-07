@@ -3,6 +3,8 @@ using Temporalio.Client;
 using Temporalio.Worker;
 
 using MoneyTransfer;
+using Temporalio.Converters;
+using TemporalioSamples.Encryption.Codec;
 
 String getEnvVarWithDefault(String envName, String defaultValue)
 {
@@ -18,6 +20,9 @@ var address = getEnvVarWithDefault("TEMPORAL_ADDRESS", "127.0.0.1:7233");
 var temporalNamespace = getEnvVarWithDefault("TEMPORAL_NAMESPACE", "default");
 var tlsCertPath = getEnvVarWithDefault("TEMPORAL_CERT_PATH", "");
 var tlsKeyPath = getEnvVarWithDefault("TEMPORAL_KEY_PATH", "");
+var encryptPayloads = getEnvVarWithDefault("ENCRYPT_PAYLOADS", "")
+    .Equals("true", StringComparison.CurrentCultureIgnoreCase);
+
 TlsOptions? tls = null;
 if (!String.IsNullOrEmpty(tlsCertPath) && !String.IsNullOrEmpty(tlsKeyPath))
 {
@@ -28,6 +33,14 @@ if (!String.IsNullOrEmpty(tlsCertPath) && !String.IsNullOrEmpty(tlsKeyPath))
         ClientPrivateKey = await File.ReadAllBytesAsync(tlsKeyPath),
     };
 }
+
+var dataConverter = DataConverter.Default;
+if (encryptPayloads)
+{
+    Console.WriteLine("Encrypting payloads");
+    dataConverter = DataConverter.Default with { PayloadCodec = new EncryptionCodec() };
+}
+
 Console.WriteLine($"Address is {address}");
 var client = await TemporalClient.ConnectAsync(
     new(address)
@@ -38,6 +51,7 @@ var client = await TemporalClient.ConnectAsync(
         builder.
             AddSimpleConsole(options => options.TimestampFormat = "[HH:mm:ss] ").
             SetMinimumLevel(LogLevel.Information)),
+        DataConverter = dataConverter,
     });
 
 using var tokenSource = new CancellationTokenSource();

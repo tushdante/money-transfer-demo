@@ -1,3 +1,3 @@
 #!/bin/bash
 cd src
-dotnet run
+ENCRYPT_PAYLOADS=$1 dotnet run

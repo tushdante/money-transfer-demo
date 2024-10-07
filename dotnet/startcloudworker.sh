@@ -1,4 +1,4 @@
 #!/bin/bash
 source ../setcloudenv.sh
 cd src
-dotnet run
+ENCRYPT_PAYLOADS=$1 dotnet run
