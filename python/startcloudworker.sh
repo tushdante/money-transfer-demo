@@ -1,3 +1,3 @@
 #!/bin/bash
 source ../setcloudenv.sh
-python worker.py
+ENCRYPT_PAYLOADS=$1 python worker.py

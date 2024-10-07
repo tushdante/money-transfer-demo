@@ -1,2 +1,3 @@
 #!/bin/bash
-python worker.py
+python3 -m venv venv
+ENCRYPT_PAYLOADS=$1 python worker.py

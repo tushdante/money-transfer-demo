@@ -8,6 +8,7 @@ See the main [README](../README.md) for instructions on how to use the UI.
 python3 -m venv venv
 source venv/bin/activate # On Windows, use `venv\Scripts\activate`
 pip install temporalio
+pip install cryptography
 ```
 
 ## Run Worker Locally
