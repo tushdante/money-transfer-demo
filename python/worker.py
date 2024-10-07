@@ -60,6 +60,7 @@ async def main():
                     activities.sendNotification,
                     activities.undoWithdraw],
     )
+    print(f"Connecting to Temporal on {address}")
     print("Python money transfer worker starting...")
     await worker.run()
 

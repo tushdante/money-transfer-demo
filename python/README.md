@@ -3,12 +3,13 @@ A money transfer demo worker written using the Temporal Python SDK, which is com
 
 See the main [README](../README.md) for instructions on how to use the UI.
 
-## Set up Python Virtual Environment
+## Prerequisties
+
+* [Poetry](https://python-poetry.org/docs/) - Python Dependency Management
+
+## Set up Python Environment
 ```bash
-python3 -m venv venv
-source venv/bin/activate # On Windows, use `venv\Scripts\activate`
-pip install temporalio
-pip install cryptography
+poetry install
 ```
 
 ## Run Worker Locally
