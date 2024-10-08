@@ -12,7 +12,7 @@ logging.basicConfig(level=logging.INFO)
 class AccountTransferActivities:
 
     API_DOWNTIME = "AccountTransferWorkflowAPIDowntime"
-    INVALID_ACCOUNT = "AccountTransferWorkflowInvalidAccount"    
+    INVALID_ACCOUNT = "AccountTransferWorkflowInvalidAccount"
 
     retry_policy = RetryPolicy(initial_interval=timedelta(seconds=1), backoff_coefficient=2, maximum_interval=timedelta(seconds=30))
 
@@ -49,7 +49,7 @@ class AccountTransferActivities:
             # transient error, which can be retried
             activity.logger.info(f"Withdraw API unavaiable, attempt {attempt}")
             raise ApplicationError(f"Withdraw activity failed, API unavailable")
-        
+
         return "SUCCESS"
 
     @activity.defn
@@ -63,7 +63,7 @@ class AccountTransferActivities:
 
         if self.INVALID_ACCOUNT == error:
             # business error, which cannot be retried
-            raise ApplicationError(f"Deposit activity failed, account is invalid", type="InvalidAccount", non_retryable=True)        
+            raise ApplicationError(f"Deposit activity failed, account is invalid", type="InvalidAccount", non_retryable=True)
 
         return DepositResponse("example-transfer-id")
 
@@ -78,7 +78,7 @@ class AccountTransferActivities:
 
     @activity.defn
     async def undoWithdraw(self, amount: float) -> bool:
-        
+
         # simulate external API call
         await self.simulate_external_operation_ms(1000)
 
