@@ -131,3 +131,23 @@ In a new terminal, start the Python Worker
 cd python
 ./startcloudworker.sh
 ```
+
+## Using Encryption
+This demo supports encyrption by setting the environment variable ENCRYPT_PAYLOADS to true. To make this easier, each of the start*.sh files will use the first parameter to set this variable. If you want to use encryption, be sure to set this for the UI and the worker that you choose. For example:
+
+### Start the UX 
+Next, start the UX which is written using the Java SDK
+
+```bash
+cd ui
+./startcloudwebui.sh true
+```
+
+### Java Worker
+In a new terminal, start the Java Worker
+```bash
+cd java
+./startcloudworker.sh true
+```
+
+To view the decrypted data in your browser, you can set the Codec Server to use [https://codec.tmprl-demo.cloud](https://codec.tmprl-demo.cloud). Be sure to enable the "Pass the user access token" slider. This will work as long as you do not change the encryption key. 
