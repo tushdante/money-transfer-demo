@@ -65,6 +65,8 @@ In a new terminal, start the Python Worker
 
 ```bash
 cd python
+# if you haven't done this yet, install the dependencies
+poetry install
 ./startlocalworker.sh
 ```
 
@@ -129,6 +131,8 @@ In a new terminal, start the Python Worker
 
 ```bash
 cd python
+# if you haven't done this yet, install the dependencies
+poetry install
 ./startcloudworker.sh
 ```
 
@@ -143,7 +147,7 @@ cd ui
 ./startcloudwebui.sh true
 ```
 
-### Java Worker
+### Java Worker Example -- works for other SDKs as well
 In a new terminal, start the Java Worker
 ```bash
 cd java
