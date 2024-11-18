@@ -1,3 +1,3 @@
 #!/bin/bash
 source ../setcloudenv.sh
-npm run start.watch
+ENCRYPT_PAYLOADS=$1 npm run start.watch

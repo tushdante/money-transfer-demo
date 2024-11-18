@@ -1,3 +1,3 @@
 #!/bin/bash
 npm install
-npm run start.watch
+ENCRYPT_PAYLOADS=$1 npm run start.watch
