@@ -38,8 +38,8 @@ public class TemporalClient {
                     SimpleSslContextBuilder.forPKCS8(clientCert, clientKey).build()
             );
         }
-        else {
-            throw new RuntimeException("You must specify either an API KEY or mTLS certificates");
+        else if (!ServerInfo.getAddress().equals("localhost:7233")){
+            throw new RuntimeException("You must specify either an API KEY or mTLS certificates for a non local connection");
         }
 
         String targetEndpoint = ServerInfo.getAddress();
