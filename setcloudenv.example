@@ -7,5 +7,9 @@ export TEMPORAL_NAMESPACE=$(temporal env get --env ${TEMPORAL_ENV} --key namespa
 export TEMPORAL_CERT_PATH=$(temporal env get --env ${TEMPORAL_ENV} --key tls-cert-path -o json | jq -r '.[].value')
 export TEMPORAL_KEY_PATH=$(temporal env get --env ${TEMPORAL_ENV} --key tls-key-path -o json | jq -r '.[].value')
 
+# if TEMPORAL_API_KEY is set, API key auth will take precedence over mTLS auth. Comment out TEMPORAL_CERT_PATH
+# and TEMPORAL_KEY_PATH above if using API keys.
+# export TEMPORAL_API_KEY="<temporal_cloud_api_keytemporal_cloud_api_key>"
+
 # if you have a specific pkcs8 key for java
 # export TEMPORAL_KEY_PKCS8_PATH=$(temporal env get --env ${TEMPORAL_ENV} --key tls-key-pkcs8-path -o json | jq -r '.[].value')

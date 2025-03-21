@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"crypto/tls"
 	"log"
 	"log/slog"
@@ -14,6 +15,8 @@ import (
 	tlog "go.temporal.io/sdk/log"
 	"go.temporal.io/sdk/worker"
 	"go.temporal.io/sdk/workflow"
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/metadata"
 )
 
 func main() {
@@ -72,9 +75,31 @@ func getClientOptions() client.Options {
 		Logger:    tlog.NewStructuredLogger(logger),
 	}
 
+	apiKey := getEnv("TEMPORAL_API_KEY", "")
 	tlsCertPath := getEnv("TEMPORAL_CERT_PATH", "")
 	tlsKeyPath := getEnv("TEMPORAL_KEY_PATH", "")
-	if tlsCertPath != "" && tlsKeyPath != "" {
+
+	switch {
+	case apiKey != "":
+    clientOptions.ConnectionOptions = client.ConnectionOptions{
+      TLS: &tls.Config{},
+      DialOptions: []grpc.DialOption{
+        grpc.WithUnaryInterceptor(
+          func(ctx context.Context, method string, req any, reply any, cc *grpc.ClientConn, invoker grpc.UnaryInvoker, opts ...grpc.CallOption) error {
+            return invoker(
+              metadata.AppendToOutgoingContext(ctx, "temporal-namespace", namespace),
+              method,
+              req,
+              reply,
+              cc,
+              opts...,
+            )
+          },
+        ),
+      },
+    }
+    clientOptions.Credentials = client.NewAPIKeyStaticCredentials(apiKey)
+	case tlsCertPath != "" && tlsKeyPath != "":
 		cert, err := tls.LoadX509KeyPair(tlsCertPath, tlsKeyPath)
 		if err != nil {
 			log.Fatalln("Unable to load cert and key pair", err)
