@@ -2,9 +2,12 @@ package io.temporal.samples.moneytransfer;
 
 import com.google.common.base.Splitter;
 import com.google.protobuf.Timestamp;
+import io.grpc.stub.MetadataUtils;
 import io.temporal.api.workflow.v1.WorkflowExecutionInfo;
 import io.temporal.api.workflowservice.v1.ListWorkflowExecutionsRequest;
 import io.temporal.api.workflowservice.v1.ListWorkflowExecutionsResponse;
+import io.temporal.client.WorkflowClient;
+import io.temporal.client.WorkflowExecutionMetadata;
 import io.temporal.samples.moneytransfer.helper.ServerInfo;
 import io.temporal.samples.moneytransfer.model.WorkflowStatus;
 import io.temporal.serviceclient.WorkflowServiceStubs;
@@ -23,60 +26,46 @@ import static io.temporal.samples.moneytransfer.TemporalClient.getWorkflowServic
 public class TransferLister {
 
     public static List<WorkflowStatus> listWorkflows() throws FileNotFoundException, SSLException {
-        WorkflowServiceStubs service = getWorkflowServiceStubs();
+        WorkflowClient client = TemporalClient.get();
 
-        ListWorkflowExecutionsResponse responseOpen = service
-                .blockingStub()
-                .listWorkflowExecutions(
-                        ListWorkflowExecutionsRequest.newBuilder()
-                                .setNamespace(ServerInfo.getNamespace())
-                                .setQuery(
-                                        "ExecutionStatus = 'Running'" +
-                                                "AND WorkflowType STARTS_WITH 'AccountTransferWorkflow'" +
-                                                "AND StartTime BETWEEN '" +
-                                                timeStampToString(getOneHourAgo()) +
-                                                "'" +
-                                                " AND '" +
-                                                timeStampToString(getNow()) +
-                                                "'"
-                                )
-                                .build()
-                );
+        List<WorkflowExecutionMetadata> responseOpen = client.listExecutions(
+                "ExecutionStatus = 'Running'" +
+                "AND WorkflowType STARTS_WITH 'AccountTransferWorkflow'" +
+                "AND StartTime BETWEEN '" +
+                timeStampToString(getOneHourAgo()) +
+                "'" +
+                " AND '" +
+                timeStampToString(getNow()) +
+                "'"
+            ).toList();
 
-        ListWorkflowExecutionsResponse responseClosed = service
-                .blockingStub()
-                .listWorkflowExecutions(
-                        ListWorkflowExecutionsRequest.newBuilder()
-                                .setNamespace(ServerInfo.getNamespace())
-                                .setQuery(
-                                        "ExecutionStatus != 'Running'" +
-                                                "AND WorkflowType STARTS_WITH 'AccountTransferWorkflow'" +
-                                                "AND StartTime BETWEEN '" +
-                                                timeStampToString(getOneHourAgo()) +
-                                                "'" +
-                                                " AND '" +
-                                                timeStampToString(getNow()) +
-                                                "'"
-                                )
-                                .build()
-                );
+        List<WorkflowExecutionMetadata> responseClosed = client.listExecutions(
+        "ExecutionStatus != 'Running'" +
+                "AND WorkflowType STARTS_WITH 'AccountTransferWorkflow'" +
+                "AND StartTime BETWEEN '" +
+                timeStampToString(getOneHourAgo()) +
+                "'" +
+                " AND '" +
+                timeStampToString(getNow()) +
+                "'"
+            ).toList();
 
         // array of WorkflowStatus
         List<WorkflowStatus> workflowStatusList = new ArrayList<>();
 
-        for (WorkflowExecutionInfo workflowExecutionInfo : responseOpen.getExecutionsList()) {
+        for (WorkflowExecutionMetadata workflowExecutionMetadata : responseOpen) {
             WorkflowStatus workflowStatusOpen = new WorkflowStatus();
-            workflowStatusOpen.setWorkflowId(workflowExecutionInfo.getExecution().getWorkflowId());
-            workflowStatusOpen.setWorkflowStatus(getWorkflowStatus(workflowExecutionInfo.getStatus().toString()));
-            workflowStatusOpen.setUrl(getWorkflowUrl(workflowExecutionInfo.getExecution().getWorkflowId()));
+            workflowStatusOpen.setWorkflowId(workflowExecutionMetadata.getExecution().getWorkflowId());
+            workflowStatusOpen.setWorkflowStatus(getWorkflowStatus(workflowExecutionMetadata.getStatus().toString()));
+            workflowStatusOpen.setUrl(getWorkflowUrl(workflowExecutionMetadata.getExecution().getWorkflowId()));
             workflowStatusList.add(workflowStatusOpen);
         }
 
-        for (WorkflowExecutionInfo workflowExecutionInfo : responseClosed.getExecutionsList()) {
+        for (WorkflowExecutionMetadata workflowExecutionMetadata : responseClosed) {
             WorkflowStatus workflowStatusClosed = new WorkflowStatus();
-            workflowStatusClosed.setWorkflowId(workflowExecutionInfo.getExecution().getWorkflowId());
-            workflowStatusClosed.setWorkflowStatus(getWorkflowStatus(workflowExecutionInfo.getStatus().toString()));
-            workflowStatusClosed.setUrl(getWorkflowUrl(workflowExecutionInfo.getExecution().getWorkflowId()));
+            workflowStatusClosed.setWorkflowId(workflowExecutionMetadata.getExecution().getWorkflowId());
+            workflowStatusClosed.setWorkflowStatus(getWorkflowStatus(workflowExecutionMetadata.getStatus().toString()));
+            workflowStatusClosed.setUrl(getWorkflowUrl(workflowExecutionMetadata.getExecution().getWorkflowId()));
             workflowStatusList.add(workflowStatusClosed);
         }
 

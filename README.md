@@ -85,10 +85,16 @@ cp setcloudenv.example setcloudenv.sh
 
 Edit setcloudenv.sh to match your Temporal Cloud account:
 ```bash
+# either using mTLS
 export TEMPORAL_ADDRESS=<namespace>.<accountID>.tmprl.cloud:7233
 export TEMPORAL_NAMESPACE=<namespace>.<accountID>
 export TEMPORAL_CERT_PATH="/path/to/cert.pem"
 export TEMPORAL_KEY_PATH="/path/to/key.key"
+
+# or API keys
+export TEMPORAL_ADDRESS=<region>.<cloud_provider>.api.temporal.io:7233
+export TEMPORAL_NAMESPACE=<namespace>.<accountID>
+export TEMPORAL_API_KEY=<api_key>
 ```
 
 ### Start the UX 

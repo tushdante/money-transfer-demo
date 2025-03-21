@@ -1,5 +1,7 @@
 package io.temporal.samples.moneytransfer;
 
+import io.grpc.Metadata;
+import io.grpc.stub.MetadataUtils;
 import io.temporal.client.WorkflowClient;
 import io.temporal.client.WorkflowClientOptions;
 import io.temporal.client.schedules.ScheduleClient;
@@ -20,11 +22,16 @@ import java.util.Collections;
 
 public class TemporalClient {
 
-    public static WorkflowServiceStubs getWorkflowServiceStubs() throws FileNotFoundException, SSLException {
+    public static WorkflowServiceStubsOptions.Builder getWorkflowServiceStubsOptionsBuilder() throws FileNotFoundException, SSLException {
         WorkflowServiceStubsOptions.Builder workflowServiceStubsOptionsBuilder =
                 WorkflowServiceStubsOptions.newBuilder();
 
-        if (!ServerInfo.getCertPath().equals("") && !"".equals(ServerInfo.getKeyPath())) {
+        if (!ServerInfo.getApiKey().equals("")) {
+            workflowServiceStubsOptionsBuilder
+                .addApiKey(() -> ServerInfo.getApiKey())
+                .setEnableHttps(true);
+        }
+        else if (!ServerInfo.getCertPath().equals("") && !"".equals(ServerInfo.getKeyPath())) {
             InputStream clientCert = new FileInputStream(ServerInfo.getCertPath());
             InputStream clientKey = new FileInputStream(ServerInfo.getKeyPath());
             workflowServiceStubsOptionsBuilder.setSslContext(
@@ -34,6 +41,17 @@ public class TemporalClient {
 
         String targetEndpoint = ServerInfo.getAddress();
         workflowServiceStubsOptionsBuilder.setTarget(targetEndpoint);
+
+        return workflowServiceStubsOptionsBuilder;
+    }
+
+    public static WorkflowServiceStubs getWorkflowServiceStubs() throws FileNotFoundException, SSLException {
+        WorkflowServiceStubsOptions.Builder workflowServiceStubsOptionsBuilder = getWorkflowServiceStubsOptionsBuilder();
+
+        return getWorkflowServiceStubs(workflowServiceStubsOptionsBuilder);
+    }
+
+    public static WorkflowServiceStubs getWorkflowServiceStubs(WorkflowServiceStubsOptions.Builder workflowServiceStubsOptionsBuilder) throws FileNotFoundException, SSLException {
         WorkflowServiceStubs service = null;
 
         if (!ServerInfo.getAddress().equals("localhost:7233")) {
@@ -70,7 +88,27 @@ public class TemporalClient {
     }
 
     public static ScheduleClient getScheduleClient() throws FileNotFoundException, SSLException {
-        WorkflowServiceStubs service = getWorkflowServiceStubs();
+        WorkflowServiceStubs service = null;
+
+        // need to manually set the namespace header when using API keys and the schedule client
+        if (ServerInfo.getApiKey().isEmpty()) {
+          service = getWorkflowServiceStubs();
+        } else {
+            Metadata.Key<String> namespace = Metadata.Key.of("temporal-namespace", Metadata.ASCII_STRING_MARSHALLER);
+
+            Metadata metadata = new Metadata();
+            metadata.put(namespace, ServerInfo.getNamespace());
+
+            WorkflowServiceStubsOptions.Builder workflowServiceStubsOptionsBuilder = getWorkflowServiceStubsOptionsBuilder();
+            workflowServiceStubsOptionsBuilder
+                    .setChannelInitializer(
+                        (channel) -> {
+                            channel.intercept(MetadataUtils.newAttachHeadersInterceptor(metadata));
+                        });
+
+            service = getWorkflowServiceStubs(workflowServiceStubsOptionsBuilder);
+        }
+
         ScheduleClientOptions.Builder builder = ScheduleClientOptions.newBuilder();
 
         // if environment variable ENCRYPT_PAYLOADS is set to true, then use CryptCodec
