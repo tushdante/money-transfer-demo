@@ -27,6 +27,8 @@ public class ServerInfo {
         return getEnv("TEMPORAL_MONEYTRANSFER_TASKQUEUE", "MoneyTransfer");
     }
 
+    public static String getApiKey() { return getEnv("TEMPORAL_API_KEY", ""); }
+
     public static int getWorkflowSleepDuration() {
         String workflowSleepDurationString = getEnv("TEMPORAL_MONEYTRANSFER_SLEEP", "0");
         int workflowSleepDuration = 0;
@@ -45,6 +47,18 @@ public class ServerInfo {
         info.put("namespace", getNamespace());
         info.put("address", getAddress());
         info.put("taskQueue", getTaskqueue());
+        String apiKey = getApiKey();
+        if (apiKey != null && !apiKey.isEmpty()) {
+            if (apiKey.length() <= 8) {
+                info.put("apiKey", apiKey);
+            } else {
+                info.put("apiKey",
+                        apiKey.substring(0, 4) +
+                                "..." +
+                                apiKey.substring(apiKey.length() - 4)
+                );
+            }
+        }
         return info;
     }
 
