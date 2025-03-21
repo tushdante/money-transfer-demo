@@ -24,12 +24,22 @@ public class TemporalClient {
         WorkflowServiceStubsOptions.Builder workflowServiceStubsOptionsBuilder =
                 WorkflowServiceStubsOptions.newBuilder();
 
-        if (!ServerInfo.getCertPath().equals("") && !"".equals(ServerInfo.getKeyPath())) {
+        // Preference is to use an API Key
+        if (!ServerInfo.getApiKey().isEmpty()) {
+            workflowServiceStubsOptionsBuilder
+                    .addApiKey(ServerInfo::getApiKey)
+                    .setEnableHttps(true);
+        }
+        else if (!ServerInfo.getCertPath().equals("") && !"".equals(ServerInfo.getKeyPath())) {
+            // Handle mTLS certificates
             InputStream clientCert = new FileInputStream(ServerInfo.getCertPath());
             InputStream clientKey = new FileInputStream(ServerInfo.getKeyPath());
             workflowServiceStubsOptionsBuilder.setSslContext(
                     SimpleSslContextBuilder.forPKCS8(clientCert, clientKey).build()
             );
+        }
+        else {
+            throw new RuntimeException("You must specify either an API KEY or mTLS certificates");
         }
 
         String targetEndpoint = ServerInfo.getAddress();

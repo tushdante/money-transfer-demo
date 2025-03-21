@@ -88,7 +88,13 @@ public class TransferRequester {
     }
 
     private static String getWorkflowStatus(String workflowId) throws FileNotFoundException, SSLException {
-        WorkflowClient client = TemporalClient.get();
-        return client.newUntypedWorkflowStub(workflowId).describe().getStatus().name();
+        WorkflowServiceStubs service = getWorkflowServiceStubs();
+        WorkflowServiceGrpc.WorkflowServiceBlockingStub stub = service.blockingStub();
+        DescribeWorkflowExecutionRequest request = DescribeWorkflowExecutionRequest.newBuilder()
+                .setNamespace(ServerInfo.getNamespace())
+                .setExecution(WorkflowExecution.newBuilder().setWorkflowId(workflowId))
+                .build();
+        DescribeWorkflowExecutionResponse response = stub.describeWorkflowExecution(request);
+        return response.getWorkflowExecutionInfo().getStatus().name();
     }
 }

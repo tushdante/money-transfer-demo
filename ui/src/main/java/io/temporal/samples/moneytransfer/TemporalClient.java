@@ -38,6 +38,9 @@ public class TemporalClient {
                     SimpleSslContextBuilder.forPKCS8(clientCert, clientKey).build()
             );
         }
+        else {
+            throw new RuntimeException("You must specify either an API KEY or mTLS certificates");
+        }
 
         String targetEndpoint = ServerInfo.getAddress();
         workflowServiceStubsOptionsBuilder.setTarget(targetEndpoint);
