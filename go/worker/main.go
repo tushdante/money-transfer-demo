@@ -79,8 +79,7 @@ func getClientOptions() client.Options {
 	tlsCertPath := getEnv("TEMPORAL_CERT_PATH", "")
 	tlsKeyPath := getEnv("TEMPORAL_KEY_PATH", "")
 
-	switch {
-	case apiKey != "":
+	if apiKey != "" {
     clientOptions.ConnectionOptions = client.ConnectionOptions{
       TLS: &tls.Config{},
       DialOptions: []grpc.DialOption{
@@ -98,12 +97,15 @@ func getClientOptions() client.Options {
         ),
       },
     }
+
     clientOptions.Credentials = client.NewAPIKeyStaticCredentials(apiKey)
-	case tlsCertPath != "" && tlsKeyPath != "":
+  
+  } else if tlsCertPath != "" && tlsKeyPath != "" {
 		cert, err := tls.LoadX509KeyPair(tlsCertPath, tlsKeyPath)
-		if err != nil {
+    if err != nil {
 			log.Fatalln("Unable to load cert and key pair", err)
 		}
+
 		clientOptions.ConnectionOptions = client.ConnectionOptions{
 			TLS: &tls.Config{
 				Certificates: []tls.Certificate{cert},
