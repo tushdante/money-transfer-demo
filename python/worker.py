@@ -32,7 +32,23 @@ async def main():
         print("Encrypting payloads")
         dataConverter = dataclasses.replace(temporalio.converter.default(), payload_codec=EncryptionCodec())
 
-    if tlsCertPath and tlsKeyPath:
+    # Prefer API Key auth
+    if apiKey != "":
+        print("Using Cloud API key auth")
+        print(f"API Key: {apiKey}")
+        print(f"Address: {address}")
+        print(f"Namespace: {namespace}")
+
+        client = await Client.connect(
+            address,
+            namespace=namespace,
+            rpc_metadata={"temporal-namespace": namespace},
+            api_key=apiKey,
+            data_converter=dataConverter,
+            tls=True,
+        )
+    # Fallback to mTLS auth
+    elif tlsCertPath and tlsKeyPath:
         print("Using mTLS auth")
         with open(tlsCertPath,"rb") as f:
             cert = f.read()
@@ -47,20 +63,6 @@ async def main():
             target_host=address,
             namespace=namespace,
             tls=tls
-        )
-    elif apiKey != "":
-        print("Using Cloud API key auth")
-        print(f"API Key: {apiKey}")
-        print(f"Address: {address}")
-        print(f"Namespace: {namespace}")
-
-        client = await Client.connect(
-            address,
-            namespace=namespace,
-            rpc_metadata={"temporal-namespace": namespace},
-            api_key=apiKey,
-            data_converter=dataConverter,
-            tls=True,
         )
 
     activities = AccountTransferActivities()
