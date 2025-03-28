@@ -22,9 +22,20 @@ var tlsCertPath = getEnvVarWithDefault("TEMPORAL_CERT_PATH", "");
 var tlsKeyPath = getEnvVarWithDefault("TEMPORAL_KEY_PATH", "");
 var encryptPayloads = getEnvVarWithDefault("ENCRYPT_PAYLOADS", "")
     .Equals("true", StringComparison.CurrentCultureIgnoreCase);
+var key = getEnvVarWithDefault("TEMPORAL_API_KEY", "");
+var apiKey = key.Equals("") ? null : key;
+var rpcMetadata = new Dictionary<string, string>();
 
 TlsOptions? tls = null;
-if (!String.IsNullOrEmpty(tlsCertPath) && !String.IsNullOrEmpty(tlsKeyPath))
+if (apiKey != null)
+{
+    rpcMetadata.Add("temporal-namespace", temporalNamespace);
+    tls = new();
+    var printableApiKey = apiKey.Substring(0, 4) + "..." + apiKey.Substring(apiKey.Length - 4);
+    Console.WriteLine($"Using API Key: {printableApiKey}");
+    Console.WriteLine($"metadata {rpcMetadata}");
+}
+else if (!String.IsNullOrEmpty(tlsCertPath) && !String.IsNullOrEmpty(tlsKeyPath))
 {
     Console.WriteLine("setting TLS");
     tls = new()
@@ -32,6 +43,11 @@ if (!String.IsNullOrEmpty(tlsCertPath) && !String.IsNullOrEmpty(tlsKeyPath))
         ClientCert = await File.ReadAllBytesAsync(tlsCertPath),
         ClientPrivateKey = await File.ReadAllBytesAsync(tlsKeyPath),
     };
+}
+else if (!address.Equals("localhost:7233") && !address.Equals("127.0.0.1:7233"))
+{
+    Console.WriteLine($"Missing API key or mTLS cert for non local Temporal Address {address}");
+    throw new ArgumentException("You must specify either an API KEY or mTLS certificate");
 }
 
 var dataConverter = DataConverter.Default;
@@ -47,6 +63,8 @@ var client = await TemporalClient.ConnectAsync(
     {
         Namespace = temporalNamespace,
         Tls = tls,
+        ApiKey = apiKey,
+        RpcMetadata = rpcMetadata,
         LoggerFactory = LoggerFactory.Create(builder =>
         builder.
             AddSimpleConsole(options => options.TimestampFormat = "[HH:mm:ss] ").
