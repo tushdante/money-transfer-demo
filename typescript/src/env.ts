@@ -3,7 +3,7 @@ import type * as client from '@temporalio/client';
 import type { RuntimeOptions, WorkerOptions } from '@temporalio/worker';
 
 // Common set of connection options that can be used for both the client and worker connections.
-export type ConnectionOptions = Pick<client.ConnectionOptions, 'tls' | 'address'>;
+export type ConnectionOptions = Pick<client.ConnectionOptions, 'tls' | 'address'> & { apiKey?: string }; //Set API key as string due to type compatibility
 
 export function getenv(key: string, defaultValue?: string): string {
   const value = process.env[key];
@@ -18,22 +18,36 @@ export function getenv(key: string, defaultValue?: string): string {
 
 export async function getConnectionOptions(): Promise<ConnectionOptions> {
   const address = getenv('TEMPORAL_ADDRESS', 'localhost:7233');
+  const options: ConnectionOptions = { address };
 
   let tls: ConnectionOptions['tls'] = undefined;
-  if (process.env.TEMPORAL_CERT_PATH && process.env.TEMPORAL_KEY_PATH) {
-    const crt = await fs.readFile(getenv('TEMPORAL_CERT_PATH'));
-    const key = await fs.readFile(getenv('TEMPORAL_KEY_PATH'));
+  
+  //First check for API Key
+  if (process.env.TEMPORAL_API_KEY) {
+    console.info('🤖: Connecting to Temporal Cloud using API key ⛅');
+    console.info('api key: ', getenv('TEMPORAL_API_KEY'))
+    options.apiKey = getenv('TEMPORAL_API_KEY');
+    options.tls = true; // Set tls to true when using API keys for Temporal Cloud
+  }
+  //Fall back to mTLS certs if API key not present
+  else if (process.env.TEMPORAL_CERT_PATH && process.env.TEMPORAL_KEY_PATH) {
+    try {
+      console.info(`🤖: Attempting to read certs from: ${process.env.TEMPORAL_CERT_PATH}`);
+      const crt = await fs.readFile(getenv('TEMPORAL_CERT_PATH'));
+      const key = await fs.readFile(getenv('TEMPORAL_KEY_PATH'));
 
-    tls = { clientCertPair: { crt, key } };
-    console.info('🤖: Connecting to Temporal Cloud ⛅');
+      tls = { clientCertPair: { crt, key } };
+      options.tls = tls;
+      console.info('🤖: Connecting to Temporal Cloud using mTLS Certs ⛅');
+    } catch (error) {
+      console.error('❌ Error reading certificate files:', error);
+      console.info('🤖: Falling back to Local Temporal connection');
+    }
   } else {
-    console.info('🤖: Connecting to Local Temporal');
+    console.info('🤖: Certificate paths not found, connecting to Local Temporal');
   }
 
-  return {
-    address,
-    tls,
-  };
+  return options;
 }
 
 export function getWorkflowOptions(): Pick<WorkerOptions, 'workflowBundle' | 'workflowsPath'> {

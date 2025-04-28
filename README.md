@@ -65,8 +65,18 @@ In a new terminal, start the Python Worker
 
 ```bash
 cd python
-# if you haven't done this yet, install the dependencies
+# If you haven't done this yet, install the dependencies
 poetry install
+./startlocalworker.sh
+```
+
+#### TypeScript Worker
+In a new terminal, start the TypeScript Worker
+
+```bash
+cd typescript
+# If you haven't done this yet, install the dependencies
+npm install
 ./startlocalworker.sh
 ```
 
@@ -137,8 +147,18 @@ In a new terminal, start the Python Worker
 
 ```bash
 cd python
-# if you haven't done this yet, install the dependencies
+# If you haven't done this yet, install the dependencies
 poetry install
+./startcloudworker.sh
+```
+
+#### TypeScript Worker
+In a new terminal, start the Python Worker
+
+```bash
+cd python
+# If you haven't done this yet, install the dependencies
+npm install
 ./startcloudworker.sh
 ```
 
