@@ -44,7 +44,7 @@ module Workflows
         progress_percentage: progress,
         transfer_state: transfer_state,
         workflow_status: '',
-        charge_result: deposit_response,
+        charge_result: deposit_response.to_h,
         approval_time: 0
       ).to_h
     end

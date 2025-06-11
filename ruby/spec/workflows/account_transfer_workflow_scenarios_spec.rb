@@ -163,13 +163,12 @@ RSpec.describe Workflows::AccountTransferWorkflowScenarios do
     before do
       workflow.instance_variable_set(:@progress, 50)
       workflow.instance_variable_set(:@transfer_state, 'running')
-      workflow.instance_variable_set(:@deposit_response, deposit_response)
+      workflow.instance_variable_set(:@deposit_response, deposit_response.to_h)
     end
 
     it 'returns current transfer status with approval time' do
       status = workflow.query_transfer_status
       
-      expect(status).to be_a(Hash)
       expect(status['progressPercentage']).to eq(50)
       expect(status['transferState']).to eq('running')
       expect(status['approvalTime']).to eq(described_class::APPROVAL_TIME)

@@ -80,16 +80,6 @@ class Worker
     }
   end
 
-  def activities
-    [
-      Activities::ValidateActivity,
-      Activities::WithdrawActivity,
-      Activities::DepositActivity,
-      Activities::SendNotificationActivity,
-      Activities::UndoWithdrawActivity
-    ]
-  end
-
   def temporal_address
     ENV.fetch('TEMPORAL_ADDRESS', 'localhost:7233')
   end
