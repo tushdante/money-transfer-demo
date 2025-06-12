@@ -10,7 +10,7 @@ require_relative 'activities/withdraw_activity'
 require_relative 'activities/deposit_activity'
 require_relative 'activities/send_notification_activity'
 require_relative 'activities/undo_withdraw_activity'
-# require_relative 'security/encryption_codec'
+require_relative 'security/encryption_codec'
 
 class Worker
   def run
@@ -29,7 +29,8 @@ class Worker
         Activities::DepositActivity,
         Activities::SendNotificationActivity,
         Activities::UndoWithdrawActivity
-      ]
+      ],
+      workflow_payload_codec_thread_pool: Temporalio::Worker::ThreadPool.default
     ).run
   end
 
@@ -47,7 +48,6 @@ class Worker
         options.merge!(tls_options) if using_tls?
         options.merge!(encryption_options) if encrypt_payloads?
       end
-
       Temporalio::Client.connect(temporal_address, temporal_namespace, **options)
     end
   end
@@ -56,14 +56,15 @@ class Worker
     if api_key
       {
         tls: true,
-        api_key: api_key
+        api_key: api_key,
+        rpc_metadata: { 'temporal-namespace' => temporal_namespace }
       }
     elsif cert_path && key_path
       {
-        tls: {
-          cert: File.read(cert_path),
-          key: File.read(key_path)
-        }
+        tls: Temporalio::Client::Connection::TLSOptions.new(
+          client_cert: File.read(cert_path),
+          client_private_key: File.read(key_path)
+        )
       }
     else
       {}
@@ -74,9 +75,9 @@ class Worker
     return {} unless encrypt_payloads?
 
     {
-      data_converter: {
+      data_converter: Temporalio::Converters::DataConverter.new(
         payload_codec: Security::EncryptionCodec.new
-      }
+      )
     }
   end
 
