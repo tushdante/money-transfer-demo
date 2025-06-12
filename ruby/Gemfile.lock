@@ -24,10 +24,18 @@ GEM
     diff-lcs (1.6.2)
     docile (1.4.1)
     drb (2.2.3)
+    google-protobuf (3.25.8-aarch64-linux)
     google-protobuf (3.25.8-arm64-darwin)
+    google-protobuf (3.25.8-x86_64-linux)
     googleapis-common-protos-types (1.20.0)
       google-protobuf (>= 3.18, < 5.a)
+    grpc (1.59.5-aarch64-linux)
+      google-protobuf (~> 3.24)
+      googleapis-common-protos-types (~> 1.0)
     grpc (1.59.5-arm64-darwin)
+      google-protobuf (~> 3.24)
+      googleapis-common-protos-types (~> 1.0)
+    grpc (1.59.5-x86_64-linux)
       google-protobuf (~> 3.24)
       googleapis-common-protos-types (~> 1.0)
     i18n (1.14.7)
@@ -98,7 +106,13 @@ GEM
       simplecov_json_formatter (~> 0.1)
     simplecov-html (0.13.1)
     simplecov_json_formatter (0.1.4)
+    temporalio (0.4.0-aarch64-linux)
+      google-protobuf (>= 3.25.0)
+      logger
     temporalio (0.4.0-arm64-darwin)
+      google-protobuf (>= 3.25.0)
+      logger
+    temporalio (0.4.0-x86_64-linux)
       google-protobuf (>= 3.25.0)
       logger
     tzinfo (2.0.6)
@@ -109,7 +123,9 @@ GEM
     uri (1.0.3)
 
 PLATFORMS
+  aarch64-linux
   arm64-darwin-22
+  x86_64-linux
 
 DEPENDENCIES
   activesupport
