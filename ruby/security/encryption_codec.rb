@@ -4,8 +4,11 @@ require 'temporalio/api'
 require 'temporalio/converters/payload_codec'
 require 'base64'
 
-DEFAULT_KEY = "sa-rocks!sa-rocks!sa-rocks!yeah!"
-DEFAULT_KEY_ID = "test"
+DEFAULT_KEY = "sa-rocks!sa-rocks!sa-rocks!yeah!".freeze
+DEFAULT_KEY_ID = "test".freeze
+ENCODING_ENCRYPTED = "binary/encrypted".freeze
+NONCE_LEN = 12
+AUTH_TAG_LEN = 16
 
 module Security
   class EncryptionCodec < Temporalio::Converters::PayloadCodec
@@ -19,7 +22,7 @@ module Security
       payloads.map do |p|
         Temporalio::Api::Common::V1::Payload.new(
           metadata: {
-            "encoding" => "binary/encrypted".b,
+            "encoding" => ENCODING_ENCRYPTED,
             "encryption-key-id" => @key_id.b
           },
           data: encrypt(p.to_proto)
@@ -30,7 +33,7 @@ module Security
     def decode(payloads)
       payloads.map do |p|
         encoding = p.metadata["encoding"]
-        if encoding != "binary/encrypted"
+        if encoding != ENCODING_ENCRYPTED
             p
         else
           key_id = p.metadata["encryption-key-id"]
@@ -45,24 +48,21 @@ module Security
     private
 
     def encrypt(data)
-      cipher = OpenSSL::Cipher.new("aes-256-gcm")
-      cipher.encrypt
+      cipher = OpenSSL::Cipher.new("aes-256-gcm").encrypt
       cipher.key = @key
       iv = SecureRandom.random_bytes(12)
       cipher.iv = iv
-
       ciphertext = cipher.update(data) + cipher.final
-
       iv + ciphertext + cipher.auth_tag
     end
 
     def decrypt(data)
       begin
-        iv = data[0, 12]
-        ciphertext = data[12..-17]
-        auth_tag = data[-16, 16]
-
-        decipher = OpenSSL::Cipher::AES.new(256, :GCM).decrypt
+        iv = data[0, NONCE_LEN]
+        ciphertext = data[NONCE_LEN...-AUTH_TAG_LEN]
+        auth_tag = data[-AUTH_TAG_LEN..]
+        
+        decipher = OpenSSL::Cipher.new("aes-256-gcm").decrypt
         decipher.key = @key
         decipher.iv = iv
         decipher.auth_tag = auth_tag
