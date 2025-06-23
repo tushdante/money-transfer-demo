@@ -15,11 +15,9 @@ module Activities
       error = simulate_external_operation_with_error(1000, workflow_type, attempt)
       logger.info("Deposit activity complete. Type: #{workflow_type}, error: #{error}")
 
-      if error == INVALID_ACCOUNT
-        raise ArgumentError, 'Deposit activity failed, account is invalid'
-      end
+      raise ArgumentError, 'Deposit activity failed, account is invalid' if error == INVALID_ACCOUNT
 
-      Models::DepositResponse.new(charge_id: 'example-transfer-id').to_h
+      Models::DepositResponse.new(charge_id: 'example-transfer-id')
     end
   end
 end

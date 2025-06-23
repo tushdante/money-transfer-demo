@@ -22,7 +22,7 @@ RSpec.describe 'AccountTransferWorkflow Integration', :integration do
     Temporalio::Testing::WorkflowEnvironment.start_local do |env|
       task_queue = "tq-#{SecureRandom.uuid}"
       workflow_id = "wf-#{SecureRandom.uuid}"
-      
+
       worker = Temporalio::Worker.new(
         client: env.client,
         task_queue: task_queue,
@@ -34,24 +34,24 @@ RSpec.describe 'AccountTransferWorkflow Integration', :integration do
           Activities::SendNotificationActivity
         ]
       )
-      
+
       worker.run do
         # Start workflow
         handle = env.client.start_workflow(
           Workflows::AccountTransferWorkflow,
-          transfer_input.to_h,
+          transfer_input,
           id: workflow_id,
           task_queue: task_queue
         )
-        
+
         # Wait for result
         result = handle.result
-        
+
         # Verify result
         expect(result).to be_a(Hash)
         expect(result['depositResponse']).to be_a(Hash)
         expect(result['depositResponse']['chargeId']).not_to be_empty
-        
+
         # Query workflow status
         status = handle.query('transferStatus')
         expect(status['progressPercentage']).to eq(100)
@@ -59,12 +59,12 @@ RSpec.describe 'AccountTransferWorkflow Integration', :integration do
       end
     end
   end
-  
+
   it 'handles workflow cancellation' do
     Temporalio::Testing::WorkflowEnvironment.start_local do |env|
       task_queue = "tq-#{SecureRandom.uuid}"
       workflow_id = "wf-#{SecureRandom.uuid}"
-      
+
       # Create a mock activity that will take longer to complete
       slow_activity = Class.new(Activities::DepositActivity) do
         def deposit(idempotency_key, amount)
@@ -72,7 +72,7 @@ RSpec.describe 'AccountTransferWorkflow Integration', :integration do
           super
         end
       end
-      
+
       worker = Temporalio::Worker.new(
         client: env.client,
         task_queue: task_queue,
@@ -84,22 +84,22 @@ RSpec.describe 'AccountTransferWorkflow Integration', :integration do
           Activities::SendNotificationActivity
         ]
       )
-      
+
       worker.run do
         # Start workflow
         handle = env.client.start_workflow(
           Workflows::AccountTransferWorkflow,
-          transfer_input.to_h,
+          transfer_input,
           id: workflow_id,
           task_queue: task_queue
         )
-        
+
         # Wait for activity to be scheduled
         sleep 0.5 until handle.describe.raw_description.pending_activities.any?
-        
+
         # Cancel workflow
         handle.cancel
-        
+
         # Check that it was cancelled
         expect { handle.result }.to raise_error(Temporalio::Error::WorkflowFailedError, /Workflow execution canceled/)
       end

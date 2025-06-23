@@ -1,11 +1,10 @@
 # frozen_string_literal: true
 
-require 'active_support/inflector'
+require 'json/add/struct'
+require_relative 'serialization'
 
 module Models
-  DepositResponse = Data.define(:charge_id) do
-    def to_h
-      super.transform_keys { |key| key.to_s.camelize(:lower) }
-    end
+  DepositResponse = Struct.new(:charge_id) do
+    include Serialization
   end
 end

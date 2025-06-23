@@ -1,11 +1,12 @@
 # frozen_string_literal: true
 
-require 'active_support/inflector'
+require 'json/add/struct'
+require_relative 'serialization'
 
 module Models
-  TransferInput = Data.define(:amount, :from_account, :to_account) do
-    def to_h
-      super.transform_keys { |key| key.to_s.camelize(:lower) }
-    end
-  end
+  TransferInput = Struct.new(
+    :amount,
+    :from_account,
+    :to_account
+  )
 end

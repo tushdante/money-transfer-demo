@@ -37,9 +37,9 @@ RSpec.describe Workflows::AccountTransferWorkflowScenarios do
       it 'processes the transfer successfully' do
         allow(Temporalio::Workflow).to receive(:execute_activity)
           .with(Activities::DepositActivity, anything, anything, any_args)
-          .and_return(deposit_response.to_h)
+          .and_return(deposit_response)
 
-        result = workflow.execute(transfer_input.to_h)
+        result = workflow.execute(transfer_input)
 
         expect(workflow.progress).to eq(100)
         expect(workflow.transfer_state).to eq('finished')
@@ -61,9 +61,9 @@ RSpec.describe Workflows::AccountTransferWorkflowScenarios do
         allow(Temporalio::Workflow).to receive(:execute_activity)
           .with(Activities::DepositActivity, anything, anything, any_args)
           .and_return(deposit_response)
-        
-        workflow.execute(transfer_input.to_h)
-        
+
+        workflow.execute(transfer_input)
+
         expect(workflow.progress).to eq(100)
         expect(workflow.transfer_state).to eq('finished')
       end
@@ -88,9 +88,9 @@ RSpec.describe Workflows::AccountTransferWorkflowScenarios do
       end
 
       it 'raises simulated bug error' do
-        expect {
-          workflow.execute(transfer_input.to_h)
-        }.to raise_error('Simulated bug - fix me!')
+        expect do
+          workflow.execute(transfer_input)
+        end.to raise_error('Simulated bug - fix me!')
       end
     end
 
@@ -105,9 +105,9 @@ RSpec.describe Workflows::AccountTransferWorkflowScenarios do
       it 'upserts search attributes for each step' do
         allow(Temporalio::Workflow).to receive(:execute_activity)
           .with(Activities::DepositActivity, anything, anything, any_args)
-          .and_return(deposit_response.to_h)
+          .and_return(deposit_response)
 
-        workflow.execute(transfer_input.to_h)
+        workflow.execute(transfer_input)
 
         expect(Temporalio::Workflow).to have_received(:upsert_search_attributes)
           .with('Step' => 'Validate')
@@ -128,9 +128,9 @@ RSpec.describe Workflows::AccountTransferWorkflowScenarios do
 
         expect(workflow).to receive(:undo_withdraw).with(100)
 
-        expect {
-          workflow.execute(transfer_input.to_h)
-        }.to raise_error(StandardError, /Deposit failed/)
+        expect do
+          workflow.execute(transfer_input)
+        end.to raise_error(StandardError, /Deposit failed/)
       end
     end
   end
@@ -163,12 +163,12 @@ RSpec.describe Workflows::AccountTransferWorkflowScenarios do
     before do
       workflow.instance_variable_set(:@progress, 50)
       workflow.instance_variable_set(:@transfer_state, 'running')
-      workflow.instance_variable_set(:@deposit_response, deposit_response.to_h)
+      workflow.instance_variable_set(:@deposit_response, deposit_response)
     end
 
     it 'returns current transfer status with approval time' do
       status = workflow.query_transfer_status
-      
+
       expect(status['progressPercentage']).to eq(50)
       expect(status['transferState']).to eq('running')
       expect(status['approvalTime']).to eq(described_class::APPROVAL_TIME)

@@ -43,45 +43,45 @@ RSpec.describe 'AccountTransferWorkflowScenarios Integration', :integration do
       worker(env, task_queue).run do
         handle = env.client.start_workflow(
           Workflows::AccountTransferWorkflowScenarios::NEEDS_APPROVAL,
-          transfer_input.to_h,
+          transfer_input,
           id: workflow_id,
           task_queue: task_queue
         )
-        
+
         # Wait for workflow to reach waiting state
         sleep 0.5 until handle.query('transferStatus')['transferState'] == 'waiting'
-        
+
         # Send approval signal
         handle.signal('approveTransfer')
-        
+
         # Wait for result
         result = handle.result
-        
+
         expect(result['depositResponse']).to include('chargeId' => 'example-transfer-id')
-        
+
         status = handle.query('transferStatus')
         expect(status['progressPercentage']).to eq(100)
         expect(status['transferState']).to eq('finished')
       end
     end
   end
-  
+
   it 'fails when human-in-loop workflow times out' do
     Temporalio::Testing::WorkflowEnvironment.start_local do |env|
       # Override approval time to make test faster
-      stub_const("Workflows::AccountTransferWorkflowScenarios::APPROVAL_TIME", 1)
-      
+      stub_const('Workflows::AccountTransferWorkflowScenarios::APPROVAL_TIME', 1)
+
       worker(env, task_queue).run do
         handle = env.client.start_workflow(
           Workflows::AccountTransferWorkflowScenarios::NEEDS_APPROVAL,
-          transfer_input.to_h,
+          transfer_input,
           id: workflow_id,
           task_queue: task_queue
         )
-        
+
         # Wait for workflow to reach waiting state
         sleep 0.5 until handle.query('transferStatus')['transferState'] == 'waiting'
-        
+
         # Don't send approval signal and let it time out
         begin
           handle.result

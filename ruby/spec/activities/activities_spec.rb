@@ -64,21 +64,20 @@ RSpec.describe 'Activities' do
           attempt: 5
         )
       end
-      
+
       it 'does not raise error for API downtime scenario' do
         expect do
           env.run(subject, 'key123', 123)
         end.not_to raise_error
       end
-    end   
+    end
   end
 
   describe Activities::DepositActivity do
     it 'successfully deposits funds' do
       result = env.run(subject, 'key123', 123)
       expect(subject).to have_received(:sleep).with(1.0)
-      expect(result).to be_a(Hash)
-      expect(result).to include('chargeId' => 'example-transfer-id')
+      expect(result).to have_attributes(charge_id: 'example-transfer-id')
     end
 
     context 'when scheduled by AccountTransferWorkflowInvalidAccount workflow' do
@@ -107,7 +106,7 @@ RSpec.describe 'Activities' do
           env.run(subject, 'key123', 123)
         end.not_to raise_error
       end
-    end    
+    end
   end
 
   describe Activities::SendNotificationActivity do

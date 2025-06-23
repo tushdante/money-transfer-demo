@@ -39,18 +39,18 @@ module Workflows
       handle_approval_if_needed(workflow_type)
 
       upsert_step('Withdraw')
-      withdraw_funds(idempotency_key, input.fetch('amount'), workflow_type)
+      withdraw_funds(idempotency_key, input.amount, workflow_type)
       update_progress(50, 3)
 
       handle_bug_simulation(workflow_type)
 
       upsert_step('Deposit')
       begin
-        @deposit_response = deposit_funds(idempotency_key, input.fetch('amount'), workflow_type)
+        @deposit_response = deposit_funds(idempotency_key, input.amount, workflow_type)
         update_progress(75, 1)
       rescue StandardError => e
         logger.info('Deposit failed unrecoverable error, reverting withdraw')
-        undo_withdraw(input.fetch('amount'))
+        undo_withdraw(input.amount)
         raise StandardError, "Deposit failed: #{e.message}"
       end
 
@@ -58,7 +58,7 @@ module Workflows
       send_notification(input)
       update_progress(100, 1, 'finished')
 
-      Models::TransferOutput.new(deposit_response: @deposit_response).to_h
+      Models::TransferOutput.new(deposit_response: @deposit_response).deep_camelize_keys
     end
 
     workflow_signal(name: 'approveTransfer')
@@ -79,7 +79,7 @@ module Workflows
         workflow_status: '',
         charge_result: deposit_response,
         approval_time: APPROVAL_TIME
-      ).to_h
+      ).deep_camelize_keys
     end
 
     private
@@ -94,7 +94,8 @@ module Workflows
         Temporalio::Workflow.timeout(APPROVAL_TIME) { Temporalio::Workflow.wait_condition { approved } }
       rescue Timeout::Error
         logger.error("Approval not received within #{APPROVAL_TIME} seconds")
-        raise Temporalio::Error::ApplicationError.new("Approval not received within #{APPROVAL_TIME} seconds", non_retryable: true)
+        raise Temporalio::Error::ApplicationError.new("Approval not received within #{APPROVAL_TIME} seconds",
+                                                      non_retryable: true)
       end
     end
 

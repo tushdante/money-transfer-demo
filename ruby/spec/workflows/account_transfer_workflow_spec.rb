@@ -39,16 +39,16 @@ RSpec.describe Workflows::AccountTransferWorkflow do
       workflow.instance_variable_set(:@progress, 50)
       workflow.instance_variable_set(:@transfer_state, 'running')
       workflow.instance_variable_set(:@deposit_response, deposit_response)
-      
+
       status = workflow.query_transfer_status
-      
+
       expect(status).to include(
         'progressPercentage' => 50,
         'transferState' => 'running',
         'workflowStatus' => '',
         'chargeResult' => { 'chargeId' => 'test-charge-id' },
         'approvalTime' => 0
-      )    
+      )
     end
   end
 
@@ -61,26 +61,26 @@ RSpec.describe Workflows::AccountTransferWorkflow do
     it 'processes the transfer through all steps' do
       allow(Temporalio::Workflow).to receive(:execute_activity)
         .with(Activities::DepositActivity, anything, anything, any_args)
-        .and_return(deposit_response.to_h)
+        .and_return(deposit_response)
 
-      result = workflow.execute(transfer_input.to_h)
+      result = workflow.execute(transfer_input)
 
       # Verify all activities were called
       expect(Temporalio::Workflow).to have_received(:execute_activity)
-        .with(Activities::ValidateActivity, transfer_input.to_h, any_args)
+        .with(Activities::ValidateActivity, transfer_input, any_args)
       expect(Temporalio::Workflow).to have_received(:execute_activity)
         .with(Activities::WithdrawActivity, 'test-uuid', 100, any_args)
       expect(Temporalio::Workflow).to have_received(:execute_activity)
         .with(Activities::DepositActivity, 'test-uuid', 100, any_args)
       expect(Temporalio::Workflow).to have_received(:execute_activity)
-        .with(Activities::SendNotificationActivity, transfer_input.to_h, any_args)
+        .with(Activities::SendNotificationActivity, transfer_input, any_args)
 
       # Verify workflow state
       expect(workflow).to have_attributes(
         progress: 100,
         transfer_state: 'finished',
-        deposit_response: deposit_response.to_h
-      )      
+        deposit_response: deposit_response
+      )
       # Verify result
       expect(result['depositResponse']).to eq({ 'chargeId' => 'test-charge-id' })
     end
@@ -95,7 +95,7 @@ RSpec.describe Workflows::AccountTransferWorkflow do
       expect(workflow).to receive(:update_progress).with(75, 1).ordered
       expect(workflow).to receive(:update_progress).with(100, 1, 'finished').ordered
 
-      workflow.execute(transfer_input.to_h)
+      workflow.execute(transfer_input)
     end
   end
 end

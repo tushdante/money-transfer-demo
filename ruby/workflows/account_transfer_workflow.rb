@@ -25,16 +25,16 @@ module Workflows
       validate_transfer(input)
       update_progress(25, 1)
 
-      withdraw_funds(idempotency_key, input.fetch('amount'), workflow_type)
+      withdraw_funds(idempotency_key, input.amount, workflow_type)
       update_progress(50, 3)
 
-      @deposit_response = deposit_funds(idempotency_key, input.fetch('amount'), workflow_type)
+      @deposit_response = deposit_funds(idempotency_key, input.amount, workflow_type)
       update_progress(75, 1)
 
       send_notification(input)
       update_progress(100, 1, 'finished')
 
-      Models::TransferOutput.new(deposit_response: @deposit_response).to_h
+      Models::TransferOutput.new(deposit_response: @deposit_response).deep_camelize_keys
     end
 
     workflow_query(name: 'transferStatus')
@@ -44,9 +44,9 @@ module Workflows
         progress_percentage: progress,
         transfer_state: transfer_state,
         workflow_status: '',
-        charge_result: deposit_response.to_h,
+        charge_result: deposit_response,
         approval_time: 0
-      ).to_h
+      ).deep_camelize_keys
     end
 
     private
