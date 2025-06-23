@@ -21,7 +21,10 @@ module Activities
     end
 
     def logger
-      @logger ||= Temporalio::Activity::Context.current.logger
+      # Do not memoize logger or other contextual objects per Activity attempt.
+      # Stateful Activities (like those with DB clients) that are instantiated before injecting to the Workers
+      # reuse the same Activity instance, hence memoization will leak state across attempts.
+      Temporalio::Activity::Context.current.logger
     end
   end
 end
