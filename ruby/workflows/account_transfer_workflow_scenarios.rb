@@ -17,6 +17,8 @@ module Workflows
     NEEDS_APPROVAL = 'AccountTransferWorkflowHumanInLoop'
     ADVANCED_VISIBILITY = 'AccountTransferWorkflowAdvancedVisibility'
 
+    STEP_ATTR = Temporalio::SearchAttributes::Key.new('Step', Temporalio::SearchAttributes::IndexedValueType::KEYWORD)
+
     APPROVAL_TIME = 30
 
     attr_reader :approved
@@ -26,9 +28,10 @@ module Workflows
       @approved = false
     end
 
-    def execute(input)
+    def execute(hash_input)
+      input = Models::TransferInput.from_h(hash_input)
       workflow_type = Temporalio::Workflow.info.workflow_type
-      logger.info("Dynamic Account Transfer Workflow started: #{workflow_type}, input: #{input.to_h}")
+      logger.info("Dynamic Account Transfer Workflow started: #{workflow_type}, input: #{input}")
 
       idempotency_key = Temporalio::Workflow.random.uuid
 
@@ -118,7 +121,7 @@ module Workflows
       return unless Temporalio::Workflow.info.workflow_type == ADVANCED_VISIBILITY
 
       logger.info("Advanced visibility... On step: #{step}")
-      Temporalio::Workflow.upsert_search_attributes('Step' => step)
+      Temporalio::Workflow.upsert_search_attributes(STEP_ATTR.value_set(step))
     end
   end
 end

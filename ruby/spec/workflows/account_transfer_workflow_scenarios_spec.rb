@@ -9,11 +9,7 @@ require_relative '../../models/transfer_status'
 RSpec.describe Workflows::AccountTransferWorkflowScenarios do
   let(:workflow) { described_class.new }
   let(:transfer_input) do
-    Models::TransferInput.new(
-      amount: 100,
-      from_account: 'account1',
-      to_account: 'account2'
-    )
+    {amount: 100, fromAccount: 'account1', toAccount: 'account2'}
   end
   let(:deposit_response) { Models::DepositResponse.new(charge_id: 'test-charge-id') }
   let(:workflow_id) { 'test-workflow-id' }
