@@ -51,10 +51,14 @@ module Workflows
       begin
         @deposit_response = deposit_funds(idempotency_key, input.amount, workflow_type)
         update_progress(75, 1)
-      rescue StandardError => e
+      rescue  => e
+        puts e
         logger.info('Deposit failed unrecoverable error, reverting withdraw')
         undo_withdraw(input.amount)
-        raise StandardError, "Deposit failed: #{e.message}"
+        raise Temporalio::Error::ApplicationError.new(
+          "Deposit failed: #{e.message}",
+          non_retryable: true
+        )
       end
 
       upsert_step('SendNotification')
@@ -110,7 +114,7 @@ module Workflows
 
     def undo_withdraw(amount)
       Temporalio::Workflow.execute_activity(
-        'Activities::UndoWithdrawActivity',
+        Activities::UndoWithdrawActivity,
         amount,
         start_to_close_timeout: 5,
         retry_policy: Activities::BaseActivity::RETRY_POLICY
