@@ -16,9 +16,10 @@ module Workflows
       @deposit_response = Models::DepositResponse.new(charge_id: '')
     end
 
-    def execute(input)
+    def execute(hash_input)
+      input = Models::TransferInput.from_h(hash_input)
       workflow_type = Temporalio::Workflow.info.workflow_type
-      logger.info("Simple workflow started: #{workflow_type}, input: #{input.to_h}")
+      logger.info("Simple workflow started: #{workflow_type}, input: #{input}")
 
       idempotency_key = Temporalio::Workflow.random.uuid
 

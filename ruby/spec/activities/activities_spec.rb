@@ -90,7 +90,7 @@ RSpec.describe 'Activities' do
       it 'raises error for invalid account scenario' do
         expect do
           env.run(subject, 'key123', 123)
-        end.to raise_error(ArgumentError, 'Deposit activity failed, account is invalid')
+        end.to raise_error(Temporalio::Error::ApplicationError, 'Deposit activity failed, account is invalid')
       end
     end
 

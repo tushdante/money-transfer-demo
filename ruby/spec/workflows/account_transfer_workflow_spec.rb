@@ -13,13 +13,12 @@ require_relative '../../activities/undo_withdraw_activity'
 
 RSpec.describe Workflows::AccountTransferWorkflow do
   let(:workflow) { described_class.new }
-  let(:transfer_input) do
-    Models::TransferInput.new(
-      amount: 100,
-      from_account: 'account1',
-      to_account: 'account2'
-    )
+  let(:hash_input) do
+    {amount: 100, fromAccount: 'account1', toAccount: 'account2'}
   end
+  let(:transfer_input) do
+    Models::TransferInput.from_h(hash_input)
+  end  
   let(:deposit_response) { Models::DepositResponse.new(charge_id: 'test-charge-id') }
 
   before do
@@ -63,7 +62,7 @@ RSpec.describe Workflows::AccountTransferWorkflow do
         .with(Activities::DepositActivity, anything, anything, any_args)
         .and_return(deposit_response)
 
-      result = workflow.execute(transfer_input)
+      result = workflow.execute(hash_input)
 
       # Verify all activities were called
       expect(Temporalio::Workflow).to have_received(:execute_activity)
@@ -95,7 +94,7 @@ RSpec.describe Workflows::AccountTransferWorkflow do
       expect(workflow).to receive(:update_progress).with(75, 1).ordered
       expect(workflow).to receive(:update_progress).with(100, 1, 'finished').ordered
 
-      workflow.execute(transfer_input)
+      workflow.execute(hash_input)
     end
   end
 end

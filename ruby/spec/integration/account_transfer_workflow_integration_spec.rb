@@ -11,11 +11,7 @@ require_relative '../../models/transfer_input'
 
 RSpec.describe 'AccountTransferWorkflow Integration', :integration do
   let(:transfer_input) do
-    Models::TransferInput.new(
-      amount: 100,
-      from_account: 'account1',
-      to_account: 'account2'
-    )
+    {amount: 100, fromAccount: 'account1', toAccount: 'account2'}
   end
 
   it 'executes the workflow end-to-end' do

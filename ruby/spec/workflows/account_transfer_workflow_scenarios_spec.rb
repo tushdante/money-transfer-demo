@@ -9,11 +9,7 @@ require_relative '../../models/transfer_status'
 RSpec.describe Workflows::AccountTransferWorkflowScenarios do
   let(:workflow) { described_class.new }
   let(:transfer_input) do
-    Models::TransferInput.new(
-      amount: 100,
-      from_account: 'account1',
-      to_account: 'account2'
-    )
+    {amount: 100, fromAccount: 'account1', toAccount: 'account2'}
   end
   let(:deposit_response) { Models::DepositResponse.new(charge_id: 'test-charge-id') }
   let(:workflow_id) { 'test-workflow-id' }
@@ -109,14 +105,20 @@ RSpec.describe Workflows::AccountTransferWorkflowScenarios do
 
         workflow.execute(transfer_input)
 
+        RSpec::Matchers.define :_attr_value do |expected_value|
+          match do |actual|
+            actual.is_a?(Temporalio::SearchAttributes::Update) && actual.value == expected_value
+          end
+        end
+
         expect(Temporalio::Workflow).to have_received(:upsert_search_attributes)
-          .with('Step' => 'Validate')
+          .with(_attr_value('Validate'))
         expect(Temporalio::Workflow).to have_received(:upsert_search_attributes)
-          .with('Step' => 'Withdraw')
+          .with(_attr_value('Withdraw'))
         expect(Temporalio::Workflow).to have_received(:upsert_search_attributes)
-          .with('Step' => 'Deposit')
+          .with(_attr_value('Deposit'))
         expect(Temporalio::Workflow).to have_received(:upsert_search_attributes)
-          .with('Step' => 'SendNotification')
+          .with(_attr_value('SendNotification'))
       end
     end
 
