@@ -1,0 +1,32 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: money-transfer-worker
+  namespace: money-transfer
+spec:
+  replicas: 0
+  selector:
+    matchLabels:
+      app: money-transfer-worker
+  template:
+    metadata:
+      labels:
+        app: money-transfer-worker
+    spec:
+      hostNetwork: true
+      containers:
+      - name: worker
+        image: money-transfer-worker:latest
+        imagePullPolicy: Never
+        envFrom:
+        - secretRef:
+            name: temporal-secrets
+        volumeMounts:
+        - name: tls-certs
+          mountPath: /etc/ssl/temporal
+          readOnly: true
+      volumes:
+      - name: tls-certs
+        secret:
+          secretName: temporal-tls
+          optional: true

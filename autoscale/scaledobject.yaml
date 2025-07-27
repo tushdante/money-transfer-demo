@@ -1,0 +1,30 @@
+apiVersion: keda.sh/v1alpha1
+kind: ScaledObject
+metadata:
+  name: money-transfer-worker-scaler
+  namespace: money-transfer
+spec:
+  scaleTargetRef:
+    name: money-transfer-worker  # Target deployment to scale
+  minReplicaCount: 0  # Scale to zero when no tasks
+  maxReplicaCount: 10  # Maximum worker instances
+  pollingInterval: 1  # Check queue every 1 second
+  cooldownPeriod: 15  # Wait 15s before scaling down to 0 (achieved via updating ReplicaSet directly)
+  advanced:
+    horizontalPodAutoscalerConfig:
+      behavior:
+        scaleDown:
+          stabilizationWindowSeconds: 10  # Wait 10s before each scaling down action (achieved via HPA)
+        scaleUp:
+          stabilizationWindowSeconds: 10  # Wait 10s before each scaling up action (achieved via HPA)
+  triggers:
+    - type: temporal  # KEDA Temporal scaler
+      name: money-transfer
+      metadata:
+        namespace: TEMPORAL_NAMESPACE_PLACEHOLDER
+        taskQueue: MoneyTransfer
+        activationTargetQueueSize: "0"  # Scale from 0 when any tasks exist
+        targetQueueSize: "1"  # Increase replicas if queried queue size is greater than one
+        endpoint: "TEMPORAL_ENDPOINT_PLACEHOLDER"
+      authenticationRef:
+        name: AUTHENTICATION_REF_PLACEHOLDER  # Secrets to authenticate the Temporal API for querying queue depth
