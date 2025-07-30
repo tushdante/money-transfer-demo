@@ -1,0 +1,15 @@
+apiVersion: keda.sh/v1alpha1
+kind: TriggerAuthentication
+metadata:
+  name: temporal-tls-auth
+  namespace: money-transfer
+spec:
+  secretTargetRef:
+    - parameter: cert
+      name: temporal-tls
+      key: tls.crt
+    - parameter: key
+      name: temporal-tls
+      key: tls.key
+  podIdentity:
+    provider: none
