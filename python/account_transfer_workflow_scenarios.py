@@ -2,12 +2,9 @@ from __future__ import annotations
 import asyncio
 from typing import Sequence, Any
 
-import dataclasses
-from dataclasses import dataclass
 from datetime import timedelta
 
 from temporalio import workflow
-from temporalio import activity
 from temporalio.common import RawValue, SearchAttributeKey
 from temporalio.exceptions import ApplicationError
 

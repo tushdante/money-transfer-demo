@@ -1,12 +1,9 @@
 from __future__ import annotations
 import asyncio
 
-import dataclasses
-from dataclasses import dataclass
 from datetime import timedelta
 
 from temporalio import workflow
-from temporalio import activity
 
 from shared_objects import TransferInput, TransferOutput, TransferStatus, DepositResponse
 from activities import AccountTransferActivities
