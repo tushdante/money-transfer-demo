@@ -59,7 +59,6 @@ class AccountTransferWorkflowScenarios:
             except asyncio.TimeoutError:
                 logger.error(f"Approval not received within the {self.approvalTime} seconds")
                 raise ApplicationError(f"Approval not received within {self.approvalTime} seconds", type="ApprovalTimeout", non_retryable=True)
-                pass
 
         # Withdraw
         self.upsertStep("Withdraw")
@@ -72,7 +71,6 @@ class AccountTransferWorkflowScenarios:
         if self.BUG == self.workflow_type:
             # simulate bug
             raise RuntimeError("Simulated bug - fix me!")
-            pass
 
         # Deposit
         self.upsertStep("Deposit")
