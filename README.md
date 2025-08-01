@@ -11,6 +11,12 @@ Scenarios currently implemented include
 * Bug in Workflow           - Purposefully throws/raises an error (fix and redeploy the worker)
 * Invalid Account           - How to exit a workflow for business purposes (fail the workflow)
 
+## Dependencies
+If using asdf version manager, install all required tool versions based on .tool-versions files:
+```bash
+asdf install
+```
+
 ## Running the Demo locally
 Start Temporal Locally
 
