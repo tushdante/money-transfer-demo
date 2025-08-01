@@ -129,7 +129,7 @@ class AccountTransferWorkflowScenarios:
 
     def upsertStep(self, step: str) -> None:
         if self.ADVANCED_VISIBILITY == self.workflow_type:
-            workflow.logger.info(f"Advanced visibilty... On step: {step}")
+            workflow.logger.info(f"Advanced visibility... On step: {step}")
             workflow.upsert_search_attributes([self.WORKFLOW_STEP.value_set(step)])
 
 
