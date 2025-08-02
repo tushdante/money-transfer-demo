@@ -37,7 +37,7 @@ cd ui
 ./startlocalwebui.sh
 ```
 
-Navigate to http://localhost:7000 in a web browser to interact with the UX
+Navigate to http://localhost:7070 in a web browser to interact with the UX
 
 ### Start a worker
 

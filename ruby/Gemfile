@@ -5,7 +5,7 @@ source 'https://rubygems.org'
 ruby '>= 3.2.0'
 
 gem 'temporalio'
-gem 'grpc', '~> 1.66.0'
+gem 'grpc'
 gem 'openssl', '~> 3.0'
 gem 'json', '~> 2.6'
 gem 'logger', '~> 1.5'
