@@ -77,9 +77,7 @@ jobs:
         working-directory: ./ruby
 
     - name: Install Temporal CLI
-      run: |
-        curl -sSf https://temporal.download/cli.sh | sh
-        echo "/home/runner/.temporalio/bin" >> $GITHUB_PATH
+      uses: temporalio/setup-temporal@v0
 
     - name: Install Playwright
       working-directory: ./e2e
