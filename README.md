@@ -11,6 +11,12 @@ Scenarios currently implemented include
 * Bug in Workflow           - Purposefully throws/raises an error (fix and redeploy the worker)
 * Invalid Account           - How to exit a workflow for business purposes (fail the workflow)
 
+## Dependencies
+If using asdf version manager, install all required tool versions based on .tool-versions files:
+```bash
+asdf install
+```
+
 ## Running the Demo locally
 Start Temporal Locally
 
@@ -31,7 +37,7 @@ cd ui
 ./startlocalwebui.sh
 ```
 
-Navigate to http://localhost:7000 in a web browser to interact with the UX
+Navigate to http://localhost:7070 in a web browser to interact with the UX
 
 ### Start a worker
 

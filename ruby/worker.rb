@@ -53,13 +53,13 @@ class Worker
   end
 
   def tls_options
-    if api_key
+    if !api_key.to_s.empty?
       {
         tls: true,
         api_key: api_key,
         rpc_metadata: { 'temporal-namespace' => temporal_namespace }
       }
-    elsif cert_path && key_path
+    elsif !cert_path.to_s.empty? && !key_path.to_s.empty?
       {
         tls: Temporalio::Client::Connection::TLSOptions.new(
           client_cert: File.read(cert_path),

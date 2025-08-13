@@ -1,3 +1,3 @@
 #!/bin/bash
 source ../setcloudenv.sh
-go run worker/main.go
+ENCRYPT_PAYLOADS=$1 go run worker/main.go
