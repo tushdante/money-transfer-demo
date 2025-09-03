@@ -16,6 +16,7 @@ jobs:
       matrix:
         # Images to build
         image:
+          - go
           - ui
     steps:
     - uses: actions/checkout@v4
