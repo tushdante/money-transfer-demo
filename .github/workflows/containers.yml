@@ -16,6 +16,8 @@ jobs:
       matrix:
         # Images to build
         image:
+          - go
+          - typescript
           - ui
     steps:
     - uses: actions/checkout@v4
