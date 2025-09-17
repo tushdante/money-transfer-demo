@@ -12,6 +12,7 @@ from temporalio.worker import Worker
 from temporalio.exceptions import ApplicationError
 from temporalio.converter import DataConverter, DefaultPayloadConverter, JSONPlainPayloadConverter, CompositePayloadConverter
 from temporalio.client import WorkflowFailureError
+from temporalio.common import SearchAttributeKey
 from account_transfer_workflow_scenarios import AccountTransferWorkflowScenarios
 from activities import AccountTransferActivities
 from shared_objects import TransferInput, TransferOutput, TransferStatus, DepositResponse
@@ -200,7 +201,8 @@ async def test_bug_scenario_with_recovery():
 @pytest.mark.asyncio
 async def test_advanced_visibility_scenario():
     """Test workflow with advanced visibility features"""
-    async with await WorkflowEnvironment.start_time_skipping() as env:
+    WORKFLOW_STEP = SearchAttributeKey.for_keyword("Step")
+    async with await WorkflowEnvironment.start_local(search_attributes=[WORKFLOW_STEP]) as env:
         worker = Worker(
             client=env.client,
             task_queue="test-queue",
@@ -215,21 +217,20 @@ async def test_advanced_visibility_scenario():
                 toAccount="account2"
             )
 
-            result = await env.client.start_workflow(
+            handle = await env.client.start_workflow(
                 AccountTransferWorkflowScenarios.ADVANCED_VISIBILITY,
                 transfer_input,
                 id="test-advanced-visibility",
                 task_queue="test-queue",
             )
 
-            await env.sleep(5)
-            desc = await result.describe()
-            print(desc.search_attributes)
-            await result.result()
-            # assert desc.search_attributes.get("step") == "Send notification"
-            # assert isinstance(desc.search_attributes, dict )
+            await env.sleep(10)
+            desc = await handle.describe()
+            result = await handle.result()
+            assert desc.search_attributes.get("Step") == ["Send notification"]
+            assert isinstance(desc.search_attributes, dict )
 
-            # assert isinstance(result, TransferOutput)
+            assert isinstance(result, dict)
 
 @pytest.mark.asyncio
 async def test_deposit_failure_with_rollback():
