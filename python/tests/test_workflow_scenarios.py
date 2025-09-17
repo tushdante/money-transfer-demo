@@ -201,8 +201,7 @@ async def test_bug_scenario_with_recovery():
 @pytest.mark.asyncio
 async def test_advanced_visibility_scenario():
     """Test workflow with advanced visibility features"""
-    WORKFLOW_STEP = SearchAttributeKey.for_keyword("Step")
-    async with await WorkflowEnvironment.start_local(search_attributes=[WORKFLOW_STEP]) as env:
+    async with await WorkflowEnvironment.start_local(search_attributes=[AccountTransferWorkflowScenarios.WORKFLOW_STEP]) as env:
         worker = Worker(
             client=env.client,
             task_queue="test-queue",
